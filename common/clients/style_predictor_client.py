@@ -96,5 +96,3 @@ class StylePredictorClient(BaseHTTPClient):
             data=data,
         )
         return response
-
-

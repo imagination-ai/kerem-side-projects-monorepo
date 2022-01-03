@@ -2,3 +2,7 @@
 venv
 .env
 .git
+
+portfolio/portfolio.sln
+portfolio/portfolio
+portfolio/node_modules

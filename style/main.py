@@ -2,6 +2,8 @@ import logging
 
 from fastapi import FastAPI
 
+from starlette.middleware.cors import CORSMiddleware
+
 from style.api.middleware import add_middleware
 from style.api.routers import prediction
 from style.config import settings
@@ -13,6 +15,15 @@ logger = logging.getLogger(__name__)
 
 app = FastAPI()
 add_middleware(app)
+
+origins = ["http://localhost:3000"]
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["DELETE", "GET", "POST", "PUT"],
+    allow_headers=["*"],
+)
 
 # get_model()
 

@@ -64,11 +64,30 @@ COPY entrypoints/style-app-entrypoint.sh /applications/style-app-entrypoint.sh
 ENTRYPOINT ["sh", "/applications/style-app-entrypoint.sh"]
 
 ##### 2. Leaf Image: Portfolio #####
-FROM base as portfolio
-COPY portfolio /build/portfolio
+#### 1. Builder
+FROM node:latest as portfolio_build
 
-RUN mv /build/portfolio /applications/portfolio
-EXPOSE 8501
+RUN npm install react-scripts -g --silent
 
-COPY entrypoints/portfolio-app-entrypoint.sh /applications/portfolio-app-entrypoint.sh
-ENTRYPOINT ["sh", "/applications/portfolio-app-entrypoint.sh"]
+WORKDIR /applications
+
+COPY portfolio/package.json /applications/
+COPY portfolio/package-lock.json /applications/
+
+RUN npm ci
+
+ENV PATH /applications/node_modules/.bin:$PATH
+COPY portfolio /applications/.
+
+RUN npm run build
+
+#COPY entrypoints/portfolio-app-entrypoint.sh /applications/portfolio-app-entrypoint.sh
+#ENTRYPOINT ["sh", "/applications/portfolio-app-entrypoint.sh"]
+
+#### 2. Leaf
+FROM nginx:stable-alpine as portfolio
+COPY --from=portfolio_build /applications/build /usr/share/nginx/html
+COPY portfolio/nginx/nginx.conf /etc/nginx/conf.d/default.conf
+
+EXPOSE 80
+CMD ["nginx", "-g", "daemon off;"]

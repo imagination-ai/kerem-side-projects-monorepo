@@ -1,3 +1,3 @@
 cd /applications || exit
 
-streamlit run portfolio/main.py
+HOST=0.0.0.0 npm start
