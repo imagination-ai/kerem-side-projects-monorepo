@@ -3,8 +3,11 @@ import axios from 'axios'
 export default class StyleClient {
   constructor (host, port) {
     this.host = host
+    if (!host.startsWith("http")) {
+      this.host = "http://" + host
+    }
     this.port = port
-    this.base_url = `http://${this.host}:${this.port}/api/v1`
+    this.base_url = `${this.host}:${this.port}/api/v1`
     console.log('Base URL for StyleClient ' + this.base_url)
   }
 

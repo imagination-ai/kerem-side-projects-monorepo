@@ -25,6 +25,6 @@ A table:
 
 export default class MarkdownTranslator extends React.Component {
   render () {
-    return <ReactMarkdown children={markdown} remarkPlugins={[remarkGfm]} />
+    return <ReactMarkdown children={this.props.children} remarkPlugins={[remarkGfm]} />
   }
 }

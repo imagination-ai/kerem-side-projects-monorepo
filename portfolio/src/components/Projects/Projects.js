@@ -11,15 +11,7 @@ const projects = [
   {
     title: 'Inflation in Turkey',
     description: 'What would you say if I tell you the real inflation?'
-  },
-  { title: 'Project Placeholder', description: 'This project is ....' },
-  { title: 'Another project', description: 'Some description' },
-  {
-    title: 'Inflation in Turkey',
-    description: 'What would you say if I tell you the real inflation?'
-  },
-  { title: 'Project Placeholder', description: 'This project is ....' },
-  { title: 'Another project', description: 'Some description' }
+  }
 ]
 
 

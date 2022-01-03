@@ -136,6 +136,5 @@ dmypy.json
 # node
 portfolio/portfolio.sln
 portfolio/portfolio
-portfolio/public
 portfolio/node_modules/
 portfolio/src_burger/

@@ -1,20 +1,29 @@
-import React, { useEffect, useState } from 'react'
+import React, { useState } from 'react'
 import { useParams } from 'react-router-dom'
 import MarkdownTranslator from '../MarkdownTranslator/MarkdownTranslator'
 import { getProject } from '../Projects/Projects'
 import StyleClient from '../../utils/style/style_client'
-import axios from 'axios'
 
 const client = new StyleClient(
   process.env.REACT_APP_STYLE_HOST || 'localhost',
   process.env.REACT_APP_STYLE_PORT || '8080'
 )
 
-export default function Project (props) {
+const content = `# What we do 
+
+In this project, we created a few models with different sizes each of
+which take text as input, and returns a list of of authors.
+The bigger the probability, the closer the style of the corresponding author. 
+
+Currently, we returns only the **top 3 authors**.
+
+`
+
+export default function StyleProject (props) {
   let params = useParams()
   let project = getProject(parseInt(params.projectId, 10))
 
-  const [predictions, setPredictions] = useState()
+  const [predictions, setPredictions] = useState({})
   const [inputField, setInputField] = useState({
     text: '',
     model_name: ''
@@ -28,24 +37,43 @@ export default function Project (props) {
     }))
   }
 
-  const handlePredictions = async () => {
-    console.log(
-      'Handling predictions with ' +
-        inputField.text +
-        ' ' +
-        inputField.model_name
+  const predictionToTable = prediction => {
+    return (
+      <table>
+        <tbody>
+          <tr>
+            <th>Author</th>
+            <th>Probability</th>
+          </tr>
+          {Object.entries(predictions).map(([key, value]) => {
+            console.log(key, value)
+            return (
+              <tr key={key}>
+                <td>{key}</td>
+                <td>{value}</td>
+              </tr>
+            )
+          })}
+        </tbody>
+      </table>
     )
+  }
+
+  const handlePredictions = async () => {
     const results = await client.predict(inputField.text, inputField.model_name)
-    setPredictions(JSON.stringify(results.data['prediction']))
+    setPredictions(results.data['prediction'])
+    // setPredictions(JSON.stringify(results.data['prediction']))
   }
 
   return (
     <div>
       <h1>{project.title}</h1>
       <div> {project.description}</div>
-      Text: {inputField.text}, Model Name: {inputField.model_name}
-      <div>Here some predictions: {predictions}</div>
-      {/* <MarkdownTranslator /> */}
+      {<MarkdownTranslator>{content}</MarkdownTranslator>}
+
+      <p>Text: {inputField.text}</p>
+      <p>Model Name: {inputField.model_name}</p>
+      <div>{predictionToTable(predictions)}</div>
       <div>
         <input
           type='text'

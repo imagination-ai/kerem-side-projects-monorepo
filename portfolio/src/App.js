@@ -1,11 +1,10 @@
 import './App.module.css'
-import Project from './components/Project/Project'
 
 import Layout from './components/Layout/Layout'
 import React, { Component } from 'react'
 import { Route, Routes } from 'react-router-dom'
 import Projects from './components/Projects/Projects'
-
+import StyleProject from './components/CompletedProjects/StyleProject'
 
 export default class App extends Component {
   render () {
@@ -13,15 +12,8 @@ export default class App extends Component {
       <Routes>
         <Route path='/' element={<div>This is the home page</div>} />
         <Route path='/projects' element={<Projects />} />
-        <Route path='/projects/:projectId' element={<Project />} />
-        <Route
-          path='/about'
-          element={
-            <div>
-              About Kerem Baskaya 
-            </div>
-          }
-        />
+        <Route path='/projects/:projectId' element={<StyleProject />} />
+        <Route path='/about' element={<div>About Kerem Baskaya</div>} />
         <Route
           path='*'
           element={

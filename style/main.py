@@ -16,7 +16,7 @@ logger = logging.getLogger(__name__)
 app = FastAPI()
 add_middleware(app)
 
-origins = ["http://localhost:3000"]
+origins = ["http://localhost:3000", "https://blog.kerem.baskaya.io"]
 app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,
