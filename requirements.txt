@@ -16,3 +16,6 @@ fastapi~=0.68.0
 uvicorn[standard]==0.15.0
 pydantic~=1.8.2
 python-multipart
+
+# inflation-in-turkey
+cdx_toolkit==0.9.33

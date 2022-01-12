@@ -7,17 +7,18 @@ services:
       target: style
       dockerfile: Dockerfile
     image: imagination-ai/style
+    entrypoint: python
+    volumes:
+      - ./style:/applications/style
+      - ./common:/applications/common
     ports:
       - "8080:8080"
     networks:
       - backend
-    #command: "uvicorn orch.main:app --host 0.0.0.0"
+#    command: python /application/style/app.py
     restart: "no"
     deploy:
       replicas: 1
-      update_config:
-        parallelism: 2
-        delay: 10s
       restart_policy:
         condition: on-failure
 
@@ -37,9 +38,6 @@ services:
     restart: "no"
     deploy:
       replicas: 1
-      update_config:
-        parallelism: 2
-        delay: 10s
       restart_policy:
         condition: on-failure
 

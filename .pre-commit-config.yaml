@@ -5,7 +5,7 @@ repos:
     -   id: flake8
         args:
           - style
-          - tests
+          - style-resources/tests
 #-   repo: https://github.com/pycqa/isort
     #rev: 5.9.2
     #hooks:
@@ -24,15 +24,15 @@ repos:
     - id: black
       language_version: python3.8
       args:
-        - --exclude=/(\.eggs|\.git|\.hg|\.venv|build|dist|)/
-        - --target-version=py39
+        - --exclude=/(\.eggs|\.git|\.hg|\.venv|build|dist|portfolio|)/
+        - --target-version=py38
         - -l 80
--   repo: local
-    hooks:
-    -   id: tests
-        name: tests
-        entry: pytest -v
-        language: system
-        pass_filenames: false
-        types: [python]
-        stages: [push]
+#-   repo: local
+    #hooks:
+    #-   id: tests
+        #name: tests
+        #entry: pytest -v
+        #language: system
+        #pass_filenames: false
+        #types: [python]
+        #stages: [push]

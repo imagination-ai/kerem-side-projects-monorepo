@@ -1,14 +1,10 @@
-import logging
-
 from fastapi import FastAPI
-
+import logging
 from starlette.middleware.cors import CORSMiddleware
 
 from style.api.middleware import add_middleware
 from style.api.routers import prediction
 from style.config import settings
-
-# from style.predict.servable.serve import get_model
 
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
@@ -24,8 +20,6 @@ app.add_middleware(
     allow_methods=["DELETE", "GET", "POST", "PUT"],
     allow_headers=["*"],
 )
-
-# get_model()
 
 
 @app.get("/", tags=["Index"])
@@ -43,4 +37,12 @@ app.include_router(
 if __name__ == "__main__":
     import uvicorn
 
-    uvicorn.run("style.main:app", host="0.0.0.0", reload=True, debug=True)
+    logger.warning("Friendly Warning: Local Development...")
+    uvicorn.run(
+        "style.main:app",
+        host=settings.APP_HOST,
+        port=settings.APP_PORT,
+        reload=True,
+        debug=True,
+        workers=1,
+    )
