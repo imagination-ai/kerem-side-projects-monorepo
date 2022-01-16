@@ -17,8 +17,14 @@ install-dev: install-test
 install-test: install
 	$(RUN) pip install -r requirements-test.txt
 
-download-dataset:
-	python -m inflation.dataset_download --url "a101.com.tr/*" --output-fn a101.json.gz --type json --limit 1 # Update limit in the long run
+inflation/dataset/a101.json.gz:
+	python -m inflation.dataset_download --url "a101.com.tr/*" --output-fn $@ --type json --limit 50000
+
+#inflation/dataset/%.json.gz:
+#	python -m inflation.dataset_download --url ${URL} --output-fn $@ --type json --limit 1 # Update limit in the long run
 
 clean:
 	rm -rf $(ENV)
+
+kerem-%: .gitignore
+	echo $@ $* $<
