@@ -35,10 +35,6 @@ class InflationDataset:
     def __iter__(self):
         return InflationDatasetIterator(self.dataset)
 
-    # Q: boyle bir sey eklemeye gerek var mi?
-    # def __str__(self):
-    #     return str(self.dataset)
-
     def __getitem__(self, s):
         if s < 0:
             s = self.__len__() - s
@@ -70,6 +66,9 @@ class InflationDatasetIterator:
 
 
 class InflationJSONA101DatasetReader(BaseJSONDataReader):
+    ITEM_IN_STOCK = "in stock"
+    ITEM_NOT_IN_STOCK = "out of stock"
+
     @staticmethod
     def __get_product_name(soup):
         try:
@@ -124,9 +123,9 @@ class InflationJSONA101DatasetReader(BaseJSONDataReader):
             .attrs["content"]
             .strip()
         )
-        if availability == "in stock":
+        if availability == InflationJSONA101DatasetReader.ITEM_IN_STOCK:
             return True
-        elif availability == "out of stock":
+        elif availability == InflationJSONA101DatasetReader.ITEM_NOT_IN_STOCK:
             return False
         else:
             print(availability)

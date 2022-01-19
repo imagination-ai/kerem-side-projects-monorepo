@@ -52,7 +52,7 @@ class CommonCrawlerDownloader:
             url = record["url"]
             status = record["status"]
 
-            if num_fetched_record % 10 == 0:
+            if num_fetched_record % 5000 == 0:
                 logger.info(
                     f"{num_fetched_record} record is fetched. Total "
                     f"{num_written_record} record is "
@@ -99,7 +99,7 @@ class CommonCrawlerDownloader:
                 record_to_save = deepcopy(record.data)
                 record_to_save["text"] = record.text
 
-                if num_fetched_record % 10 == 0:
+                if num_fetched_record % 5000 == 0:
                     logger.info(
                         f"{num_fetched_record} record is fetched. Total "
                         f"{num_written_record} record is "
