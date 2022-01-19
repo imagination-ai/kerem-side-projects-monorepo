@@ -1,9 +1,11 @@
 import gzip
 import json
 from dataclasses import dataclass
-from datetime import datetime
+import datetime
 
 from bs4 import BeautifulSoup
+
+NOT_AVAILABLE = "___NA___"
 
 
 class BaseJSONDataReader:
@@ -19,8 +21,8 @@ class InflationDataRecord:
     product_brand: str
     price: float
     currency: str
-    stock: str
-    sample_date: str  # Q: datetime.datetime niyeyse olmuyor? # price was valid for this date.
+    in_stock: bool
+    sample_date: datetime.datetime
 
 
 class InflationDataset:
@@ -32,6 +34,10 @@ class InflationDataset:
 
     def __iter__(self):
         return InflationDatasetIterator(self.dataset)
+
+    # Q: boyle bir sey eklemeye gerek var mi?
+    # def __str__(self):
+    #     return str(self.dataset)
 
     def __getitem__(self, s):
         if s < 0:
@@ -63,26 +69,41 @@ class InflationDatasetIterator:
             return result
 
 
-class InflationJSONDatasetReader(BaseJSONDataReader):
+class InflationJSONA101DatasetReader(BaseJSONDataReader):
     @staticmethod
     def __get_product_name(soup):
-        return soup.find("meta", property="og:title").attrs["content"]
+        try:
+            return soup.find("meta", property="og:title").attrs["content"]
+        except AttributeError:
+            return NOT_AVAILABLE
 
     @staticmethod
     def __get_product_url(soup):
-        return soup.find("meta", property="og:url").attrs["content"]
+        try:
+            return soup.find("meta", property="og:url")["content"]
+        except AttributeError as e:
+            with open("/tmp/error.html", "wt") as f:
+                f.write(soup.text)
+            raise e
+            # return NOT_AVAILABLE
 
     @staticmethod
     def __get_product_code(soup):
-        return (
-            soup.find("div", {"class": "product-code"})
-            .get_text()
-            .split(": ")[1]
-        )
+        try:
+            return (
+                soup.find("div", {"class": "product-code"})
+                .get_text()
+                .split(": ")[1]
+            )
+        except AttributeError:
+            return NOT_AVAILABLE
 
     @staticmethod
     def __get_product_brand(soup):
-        return soup.find("meta", property="og:brand").attrs["content"]
+        try:
+            return soup.find("meta", property="og:brand").attrs["content"]
+        except AttributeError:
+            return NOT_AVAILABLE
 
     @staticmethod
     def __get_product_price(soup):
@@ -98,13 +119,31 @@ class InflationJSONDatasetReader(BaseJSONDataReader):
 
     @staticmethod
     def __item_in_stock(soup):
-        return soup.find("meta", property="product:availability").attrs[
-            "content"
-        ]
+        availability = (
+            soup.find("meta", property="product:availability")
+            .attrs["content"]
+            .strip()
+        )
+        if availability == "in stock":
+            return True
+        elif availability == "out of stock":
+            return False
+        else:
+            print(availability)
+            raise TypeError
 
     @staticmethod
     def __convert_sample_date(date: str):
-        return datetime.strptime(date, "%Y%m%d%H%M%S")
+        return datetime.datetime.strptime(date, "%Y%m%d%H%M%S")
+
+    @staticmethod
+    def __is_product_page(soup):
+        return all(
+            [
+                soup.find("meta", property="og:url"),
+                soup.find("meta", property="product:price:amount"),
+            ]
+        )
 
     def read(self, filename, fields=None) -> InflationDataset:
         """It goes through the `filename` and create InflationRecords
@@ -118,21 +157,46 @@ class InflationJSONDatasetReader(BaseJSONDataReader):
         """
         records = []
         with gzip.open(filename, "rt", encoding="UTF-8") as zipfile:
+            total_pages = 0
+            item_pages = 0
             for line in zipfile:
                 line = json.loads(line)
-                date = line["timestamp"]  # alttakini acinca silinecek
-                # date = InflationJSONDatasetReader.__convert_sample_date(line['timestamp']) # Bunu dataclass'taki str type'ini datetime.datetime ile degistirince acacagim
-                soup = BeautifulSoup(line["text"])
-                record = InflationDataRecord(
-                    InflationJSONDatasetReader.__get_product_name(soup),
-                    InflationJSONDatasetReader.__get_product_url(soup),
-                    InflationJSONDatasetReader.__get_product_code(soup),
-                    InflationJSONDatasetReader.__get_product_brand(soup),
-                    InflationJSONDatasetReader.__get_product_price(soup),
-                    InflationJSONDatasetReader.__get_currency(soup),
-                    InflationJSONDatasetReader.__item_in_stock(soup),
-                    date,
-                )
-                records.append(record)
+                total_pages += 1
 
+                # TODO: report how many lines are skipped.
+                date = InflationJSONA101DatasetReader.__convert_sample_date(
+                    line["timestamp"]
+                )
+                soup = BeautifulSoup(line["text"], "html.parser")
+                if InflationJSONA101DatasetReader.__is_product_page(soup):
+                    item_pages += 1
+                    print(total_pages, item_pages)
+                    record = InflationDataRecord(
+                        InflationJSONA101DatasetReader.__get_product_name(soup),
+                        InflationJSONA101DatasetReader.__get_product_url(soup),
+                        InflationJSONA101DatasetReader.__get_product_code(soup),
+                        InflationJSONA101DatasetReader.__get_product_brand(
+                            soup
+                        ),
+                        InflationJSONA101DatasetReader.__get_product_price(
+                            soup
+                        ),
+                        InflationJSONA101DatasetReader.__get_currency(soup),
+                        InflationJSONA101DatasetReader.__item_in_stock(soup),
+                        date,
+                    )
+                    records.append(record)
+        print(total_pages, item_pages)
         return InflationDataset(records)
+
+
+def run():
+    reader = InflationJSONA101DatasetReader()
+    dataset = reader.read("a101.med.json.gz")
+    # dataset = reader.read('a101.den.json.gz')
+    # print(len(dataset))
+    print(dataset)
+
+
+if __name__ == "__main__":
+    run()
