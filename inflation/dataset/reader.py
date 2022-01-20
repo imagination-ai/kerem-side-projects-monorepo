@@ -1,13 +1,21 @@
 import gzip
 import json
-
+import datetime
+import logging
+import _pickle as cPickle
+import pandas as pd
 
 from dataclasses import dataclass
-import datetime
-
+from pathlib import Path
 from bs4 import BeautifulSoup
 
+from common.customized_logging import configure_logging
+
+FILE_DIR_PATH = Path(__file__).parents[2] / "inflation-resources/data/"
 NOT_AVAILABLE = "___NA___"
+
+configure_logging()
+logger = logging.getLogger(__name__)
 
 
 class BaseJSONDataReader:
@@ -48,6 +56,23 @@ class InflationDataset:
             start, stop, step = s.indices(self.__len__())
             indxs = list(range(start, stop, step))
             return [self.dataset[i] for i in indxs]
+
+    def save_dataset(self, output_file_name):
+        """
+        It saves dataset records by serializing.
+        """
+        full_path = FILE_DIR_PATH / output_file_name
+
+        with open(full_path, "wb") as f:
+            cPickle.dump(self.dataset, f)
+
+    @classmethod
+    def read_dataset(cls, file_path):
+        with open(file_path, "rb") as input_file:
+            return cPickle.load(input_file)
+
+    def convert_dataset_to_dataframe(self):
+        return pd.DataFrame([record.__dict__ for record in self.dataset])
 
 
 class InflationDatasetIterator:
@@ -158,11 +183,11 @@ class InflationJSONA101DatasetReader(BaseJSONDataReader):
         """
         records = []
         with gzip.open(filename, "rt", encoding="UTF-8") as zipfile:
-            # total_pages = 0
-            # item_pages = 0
+            total_pages = 0
+            item_pages = 0
             for line in zipfile:
                 line = json.loads(line)
-                # total_pages += 1
+                total_pages += 1
 
                 # TODO: report how many lines are skipped.
                 date = InflationJSONA101DatasetReader.__convert_sample_date(
@@ -170,8 +195,7 @@ class InflationJSONA101DatasetReader(BaseJSONDataReader):
                 )
                 soup = BeautifulSoup(line["text"], "lxml")
                 if InflationJSONA101DatasetReader.__is_product_page(soup):
-                    # item_pages += 1
-                    # print(total_pages, item_pages)
+                    item_pages += 1
                     record = InflationDataRecord(
                         InflationJSONA101DatasetReader.__get_product_name(soup),
                         InflationJSONA101DatasetReader.__get_product_url(soup),
@@ -187,15 +211,13 @@ class InflationJSONA101DatasetReader(BaseJSONDataReader):
                         date,
                     )
                     records.append(record)
-        # print(total_pages, item_pages)
+        logger.info(f"total_pages={total_pages}, item_pages={item_pages}")
         return InflationDataset(records)
 
 
 def run():
     reader = InflationJSONA101DatasetReader()
     dataset = reader.read("a101.med.json.gz")
-    # dataset = reader.read('a101.den.json.gz')
-    # print(len(dataset))
     print(dataset)
 
 
