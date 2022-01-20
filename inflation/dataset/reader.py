@@ -1,5 +1,7 @@
 import gzip
 import json
+
+
 from dataclasses import dataclass
 import datetime
 
@@ -156,20 +158,20 @@ class InflationJSONA101DatasetReader(BaseJSONDataReader):
         """
         records = []
         with gzip.open(filename, "rt", encoding="UTF-8") as zipfile:
-            total_pages = 0
-            item_pages = 0
+            # total_pages = 0
+            # item_pages = 0
             for line in zipfile:
                 line = json.loads(line)
-                total_pages += 1
+                # total_pages += 1
 
                 # TODO: report how many lines are skipped.
                 date = InflationJSONA101DatasetReader.__convert_sample_date(
                     line["timestamp"]
                 )
-                soup = BeautifulSoup(line["text"], "html.parser")
+                soup = BeautifulSoup(line["text"], "lxml")
                 if InflationJSONA101DatasetReader.__is_product_page(soup):
-                    item_pages += 1
-                    print(total_pages, item_pages)
+                    # item_pages += 1
+                    # print(total_pages, item_pages)
                     record = InflationDataRecord(
                         InflationJSONA101DatasetReader.__get_product_name(soup),
                         InflationJSONA101DatasetReader.__get_product_url(soup),
@@ -185,7 +187,7 @@ class InflationJSONA101DatasetReader(BaseJSONDataReader):
                         date,
                     )
                     records.append(record)
-        print(total_pages, item_pages)
+        # print(total_pages, item_pages)
         return InflationDataset(records)
 
 
