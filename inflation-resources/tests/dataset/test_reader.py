@@ -1,5 +1,3 @@
-from collections import namedtuple
-
 import pytest
 import datetime
 from inflation.dataset.reader import (
@@ -13,10 +11,21 @@ PRODUCT_PAGE_DATA_PATH = (
     / "inflation-resources/tests/data/product_page.json.gz"
 )
 
+A101_MED_DATA_PATH = (
+    Path(__file__).parents[3]
+    / "inflation-resources/tests/data/a101.med.json.gz"
+)
+
 
 @pytest.fixture(scope="function")
 def inflation_data_reader():
     return InflationJSONA101DatasetReader()
+
+
+# Q: Niye yine de her testte dunya kadar bekliyor?
+@pytest.fixture(scope="module")
+def record_data():
+    return InflationJSONA101DatasetReader().read(A101_MED_DATA_PATH)
 
 
 def test_read_product(
@@ -48,3 +57,10 @@ def test_read_product(
 
     for record, truth in zip(record_data, truths):
         assert record == truth
+
+
+def test_length_readable(record_data):
+    """
+    It controls the actual number of product pages that are read.
+    """
+    assert len(record_data) == 206

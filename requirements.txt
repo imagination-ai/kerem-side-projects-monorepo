@@ -19,3 +19,6 @@ python-multipart
 
 # inflation-in-turkey
 cdx_toolkit==0.9.33
+lxml==4.7.1
+jupyter==1.0.0
+pandas==1.3.5
