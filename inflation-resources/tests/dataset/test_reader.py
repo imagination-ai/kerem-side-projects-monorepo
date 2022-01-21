@@ -24,13 +24,13 @@ def inflation_data_reader():
 
 # Q: Niye yine de her testte dunya kadar bekliyor?
 @pytest.fixture(scope="module")
-def record_data():
+def dataset():
     return InflationJSONA101DatasetReader().read(A101_MED_DATA_PATH)
 
 
 def test_read_product(
     inflation_data_reader,
-):  # Q: 3 tane yok muydu niye 2 tane geldi?
+):
     record_data = inflation_data_reader.read(PRODUCT_PAGE_DATA_PATH)
     truths = [
         InflationDataRecord(
@@ -59,8 +59,8 @@ def test_read_product(
         assert record == truth
 
 
-def test_length_readable(record_data):
+def test_length_readable(dataset):
     """
     It controls the actual number of product pages that are read.
     """
-    assert len(record_data) == 206
+    assert len(dataset) == 206

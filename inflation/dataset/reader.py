@@ -11,7 +11,9 @@ from bs4 import BeautifulSoup
 
 from common.customized_logging import configure_logging
 
-FILE_DIR_PATH = Path(__file__).parents[2] / "inflation-resources/data/"
+SAVED_DATASETS_DIR_PATH = (
+    Path(__file__).parents[2] / "inflation-resources/data/"
+)
 NOT_AVAILABLE = "___NA___"
 
 configure_logging()
@@ -61,7 +63,7 @@ class InflationDataset:
         """
         It saves dataset records by serializing.
         """
-        full_path = FILE_DIR_PATH / output_file_name
+        full_path = SAVED_DATASETS_DIR_PATH / output_file_name
 
         with open(full_path, "wb") as f:
             cPickle.dump(self.dataset, f)
@@ -71,7 +73,7 @@ class InflationDataset:
         with open(file_path, "rb") as input_file:
             return cPickle.load(input_file)
 
-    def convert_dataset_to_dataframe(self):
+    def to_df(self):
         return pd.DataFrame([record.__dict__ for record in self.dataset])
 
 
