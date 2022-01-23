@@ -66,7 +66,7 @@ class InflationDataset:
         full_path = SAVED_DATASETS_DIR_PATH / output_file_name
 
         with open(full_path, "wb") as f:
-            cPickle.dump(self.dataset, f)
+            cPickle.dump(self, f)
 
     @classmethod
     def read_dataset(cls, file_path):
