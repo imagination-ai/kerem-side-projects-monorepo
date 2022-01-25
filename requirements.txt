@@ -27,4 +27,4 @@ dataclasses~=0.8
 bs4~=4.10.0
 urllib3~=1.26.7
 seaborn==0.11.2
-matplotlib
+matplotlib==3.5.1

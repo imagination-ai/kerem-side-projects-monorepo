@@ -2,6 +2,7 @@ import numpy as np
 
 
 def calculate_missing_in_stocks(df):
+    """TODO: assign variable repetitive objects"""
     return (
         f"{len(df[df['in_stock'] == True])} items in stocks in total of {len(df)} items.",
         f"{round(len(df[df['in_stock'] == True]) / len(df), 4) * 100}% of products in the stock.",
