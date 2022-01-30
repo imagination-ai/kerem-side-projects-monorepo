@@ -27,6 +27,8 @@ class BaseJSONDataReader:
 
 @dataclass
 class InflationDataRecord:
+    turkstat_item_code: str
+    turkstat_item_name: str
     product_name: str
     product_url: str
     product_code: str  # item identifier for this data.
@@ -191,7 +193,6 @@ class InflationJSONA101DatasetReader(BaseJSONDataReader):
                 line = json.loads(line)
                 total_pages += 1
 
-                # TODO: report how many lines are skipped.
                 date = InflationJSONA101DatasetReader.__convert_sample_date(
                     line["timestamp"]
                 )
