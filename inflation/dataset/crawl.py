@@ -36,11 +36,7 @@ class Crawler:
 
         records = []
 
-        excel_file = pd.ExcelFile(file_path)
-        sheet_name = excel_file.sheet_names[0]
-
-        print(f"Using {sheet_name} for parsing the links.")
-        df = excel_file.parse(sheet_name)
+        df = pd.read_excel(file_path, dtype="object")
 
         for row in df.iterrows():
             item_code = row[1][0]

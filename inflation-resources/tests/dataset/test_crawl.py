@@ -29,6 +29,3 @@ def test_crawl_parse_true_items(records):
         items_codes.append(record.item_code)
 
     assert len(set(items_codes)) == 5
-
-
-# Bu dogru yazma fonksiyonuyla ilgili de bir test lazim. Nasil yazmak lazim onu?

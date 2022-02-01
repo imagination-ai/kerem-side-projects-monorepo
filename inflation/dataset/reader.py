@@ -187,10 +187,10 @@ class InflationJSONA101DatasetReader(BaseJSONDataReader):
 
         """
         records = []
-        with gzip.open(filename, "rt", encoding="UTF-8") as zipfile:
+        with open(filename, "rt", encoding="UTF-8") as file:
             total_pages = 0
             item_pages = 0
-            for line in zipfile:
+            for line in file:
                 line = json.loads(line)
                 total_pages += 1
 
