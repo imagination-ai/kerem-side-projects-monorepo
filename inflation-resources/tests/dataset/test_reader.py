@@ -6,14 +6,15 @@ from inflation.dataset.reader import (
 )
 from pathlib import Path
 
-PRODUCT_PAGE_DATA_PATH = (
+
+A101_TEST_DATA_PATH = (
     Path(__file__).parents[3]
-    / "inflation-resources/tests/data/product_page.json.gz"
+    / "inflation-resources/tests/data/test_data_a101.json"
 )
 
-A101_MED_DATA_PATH = (
+A101_TEST_SMALL_DATA_PATH = (
     Path(__file__).parents[3]
-    / "inflation-resources/tests/data/a101.med.json.gz"
+    / "inflation-resources/tests/data/test_data_a101_small.json"
 )
 
 
@@ -22,16 +23,15 @@ def inflation_data_reader():
     return InflationJSONA101DatasetReader()
 
 
-# Q: Niye yine de her testte dunya kadar bekliyor?
 @pytest.fixture(scope="module")
 def dataset():
-    return InflationJSONA101DatasetReader().read(A101_MED_DATA_PATH)
+    return InflationJSONA101DatasetReader().read(A101_TEST_DATA_PATH)
 
 
 def test_read_product(
     inflation_data_reader,
 ):
-    record_data = inflation_data_reader.read(PRODUCT_PAGE_DATA_PATH)
+    record_data = inflation_data_reader.read(A101_TEST_DATA_PATH)
     truths = [
         InflationDataRecord(
             "Ahşap Ramazan Davulu",

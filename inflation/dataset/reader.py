@@ -27,8 +27,9 @@ class BaseJSONDataReader:
 
 @dataclass
 class InflationDataRecord:
-    turkstat_item_code: str
-    turkstat_item_name: str
+    item_code: str
+    item_name: str
+    source: str
     product_name: str
     product_url: str
     product_code: str  # item identifier for this data.
@@ -193,6 +194,12 @@ class InflationJSONA101DatasetReader(BaseJSONDataReader):
                 line = json.loads(line)
                 total_pages += 1
 
+                item_code, item_name, source = (
+                    line["item_code"],
+                    line["item_name"],
+                    line["source"],
+                )
+
                 date = InflationJSONA101DatasetReader.__convert_sample_date(
                     line["timestamp"]
                 )
@@ -200,6 +207,9 @@ class InflationJSONA101DatasetReader(BaseJSONDataReader):
                 if InflationJSONA101DatasetReader.__is_product_page(soup):
                     item_pages += 1
                     record = InflationDataRecord(
+                        item_code,
+                        item_name,
+                        source,
                         InflationJSONA101DatasetReader.__get_product_name(soup),
                         InflationJSONA101DatasetReader.__get_product_url(soup),
                         InflationJSONA101DatasetReader.__get_product_code(soup),
