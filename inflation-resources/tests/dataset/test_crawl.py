@@ -34,7 +34,7 @@ RECORDS_RND = [
 ]
 
 
-@pytest.fixture(scope="function")
+@pytest.fixture(scope="module")
 def inflation_data_reader():
     return InflationJSONA101DatasetReader()
 
