@@ -15,8 +15,7 @@ def gutenberg_wrangler():
 def html_test_file():
     import codecs
 
-    f = codecs.open(TEST_DATA_FILENAME, "r").read()
-    return f
+    return codecs.open(TEST_DATA_FILENAME, "r").read()
 
 
 class TestGutenbergWrangler:
