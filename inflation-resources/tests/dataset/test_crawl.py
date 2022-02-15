@@ -1,5 +1,4 @@
 import json
-import random
 
 import pytest
 import tempfile
@@ -20,9 +19,11 @@ TEST_PAGE = (
     / "inflation-resources/tests/data/pages/Ovadan-Pirinç-Baldo-1000-G-A101.html"
 )
 
-RECORD = [ItemRecord("123", "pirinc", "ovadan", "http://www.gmail.com", "A101")]
+RECORDS = [
+    ItemRecord("123", "pirinc", "ovadan", "http://www.gmail.com", "A101")
+]
 
-RECORD_RND = [
+RECORDS_RND = [
     ItemRecord(
         "123",
         "pirinc",
@@ -79,7 +80,7 @@ def test_crawl_output(mock_requests_get, crawler, html_test_file):
     )
     with tempfile.TemporaryDirectory() as tmpdirname:
         fn = tmpdirname + "/" + "test"
-        crawler.crawl(RECORD, fn)
+        crawler.crawl(RECORDS, fn)
         files = []
         for entry in os.listdir(tmpdirname):
             if os.path.isfile(os.path.join(tmpdirname, entry)):
@@ -105,10 +106,8 @@ def test_crawl_and_read_A101(crawler, inflation_data_reader):
 
     """
     with tempfile.TemporaryDirectory() as tmpdirname:
-        # if random.random() < 11:
-        #     print("test_crawl_and_read_A101 is working...")
         fn = tmpdirname + "/" + "test"
-        crawler.crawl(RECORD_RND, fn)
+        crawler.crawl(RECORDS_RND, fn)
         files = []
         for entry in os.listdir(tmpdirname):
             if os.path.isfile(os.path.join(tmpdirname, entry)):
