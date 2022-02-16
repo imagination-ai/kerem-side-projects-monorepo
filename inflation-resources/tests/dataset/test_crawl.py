@@ -10,13 +10,11 @@ from inflation.dataset.crawl import ItemRecord
 from inflation.dataset.reader import InflationJSONA101DatasetReader
 
 
-TEST_LINK_EXCEL = (
-    Path(__file__).parents[3] / "inflation-resources/tests/data/test_links.xlsx"
-)
+TEST_LINK_EXCEL = Path(__file__).parents[2] / "tests/data/test_links.xlsx"
 
 TEST_PAGE = (
-    Path(__file__).parents[3]
-    / "inflation-resources/tests/data/pages/Ovadan-Pirinç-Baldo-1000-G-A101.html"
+    Path(__file__).parents[2]
+    / "tests/data/pages/ovadan-pirinc-baldo-1000-g-a101.html"
 )
 
 RECORDS = [

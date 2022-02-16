@@ -46,7 +46,7 @@ def collect_db_stats(db_path):
     return db_stats
 
 
-@app.get("/crawl", tags=["crawl"])
+@app.get("/Crawl", tags=["Crawl"])
 async def fetch_data(
     excel_path="https://docs.google.com/spreadsheets/d/1mZSqW_X_KuQQdGhH7oAn3-MATyfePLlYYmOgE-mB_9Q/edit#gid=0",
     output_path="inflation-resources/data/db/",
@@ -55,6 +55,6 @@ async def fetch_data(
     return {"success": True, "message": "The data fetching is completed."}
 
 
-@app.get("/stats", tags=["stats"])
+@app.get("/Stats", tags=["Stats"])
 async def get_db_stats(db_path="inflation-resources/data/db/"):
     return collect_db_stats(db_path)

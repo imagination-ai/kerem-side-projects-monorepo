@@ -28,6 +28,11 @@ COPY .isort.cfg /build/.isort.cfg
 COPY pytest.ini /build/pytest.ini
 COPY .flake8 /build/.flake8
 
+ENV APP_RESOURCE_DIR /applications
+ENV PYTHONPATH /applications
+
+ARG skip_tests
+
 ##### 1. Leaf Image: Style #####
 FROM base as style
 
@@ -37,10 +42,7 @@ COPY style-resources/resources /applications/resources
 COPY style-resources/datasets /applications/datasets
 COPY style-resources/models /applications/models
 
-ENV APP_RESOURCE_DIR /applications
-ENV PYTHONPATH /applications
 
-ARG skip_tests
 
 RUN \
     if [ "$skip_tests" = "" ] ; then \
@@ -59,5 +61,33 @@ RUN \
 
 RUN mv /build/style /applications/style
 EXPOSE 8080
+
 COPY entrypoints/style-app-entrypoint.sh /applications/style-app-entrypoint.sh
 ENTRYPOINT ["sh", "/applications/style-app-entrypoint.sh"]
+
+##### 2. Leaf Image: inflation #####
+FROM base as inflation
+
+COPY common /applications/common
+COPY inflation /build/inflation
+COPY inflation-resources/tests /build/tests
+COPY inflation-resources/data /build/data
+
+RUN \
+    if [ "$skip_tests" = "" ] ; then \
+        black \
+           -t py39 -l 80 \
+           --check $(find /build/inflation /build/tests -name "*.py") \
+      && \
+        flake8 --config=/build/.flake8 /build/inflation \
+      && \
+        pytest /build/tests ; \
+      else \
+        echo "Skipping tests" ; \
+    fi
+
+RUN mv /build/inflation /applications/inflation
+EXPOSE 8000
+
+COPY entrypoints/inflation-app-entrypoint.sh /applications/inflation-app-entrypoint.sh
+ENTRYPOINT ["sh", "/applications/inflation-app-entrypoint.sh"]
