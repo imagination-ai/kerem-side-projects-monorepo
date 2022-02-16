@@ -32,6 +32,8 @@ def format_spreadsheet_path(path: str):
     Note: The Google spreadsheet file must be shared publicly first before copy the full url.
     Private files raise authentication errors.
     """
+
+    path = str(path)
     if path.startswith("http"):
         path = path.replace("/edit#gid=0", "/export?format=xlsx&gid=0")
 

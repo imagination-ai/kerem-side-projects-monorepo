@@ -6,15 +6,8 @@ from inflation.dataset.reader import (
 )
 from pathlib import Path
 
-
-A101_TEST_DATA_PATH = (
-    Path(__file__).parents[3]
-    / "inflation-resources/tests/data/test_data_a101.json"
-)
-
 A101_TEST_SMALL_DATA_PATH = (
-    Path(__file__).parents[3]
-    / "inflation-resources/tests/data/test_data_a101_small.json"
+    Path(__file__).parents[2] / "tests/data/test_data_a101_small.json"
 )
 
 

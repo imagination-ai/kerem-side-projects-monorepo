@@ -7,3 +7,7 @@ except ModuleNotFoundError:
     base_path = abspath(dirname(dirname(__file__)))
     sys.path.insert(1, base_path)
     import inflation
+
+
+# @pytest.fixture('session')
+# def

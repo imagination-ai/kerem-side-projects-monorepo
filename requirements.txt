@@ -17,5 +17,7 @@ python-multipart
 # inflation-in-turkey
 cdx_toolkit==0.9.33
 lxml==4.7.1
+pandas
+openpyxl
 
 urllib3~=1.26.7
