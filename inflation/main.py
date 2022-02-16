@@ -55,6 +55,6 @@ async def fetch_data(
     return {"success": True, "message": "The data fetching is completed."}
 
 
-@app.get("/inflation-database-stats", tags=["inflation-database-stats"])
+@app.get("/stats", tags=["stats"])
 async def get_db_stats(db_path="inflation-resources/data/db/"):
     return collect_db_stats(db_path)

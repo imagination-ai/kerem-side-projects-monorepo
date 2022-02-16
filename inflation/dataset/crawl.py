@@ -21,7 +21,7 @@ class ItemRecord:
     source: str
 
 
-def control_spreadsheet_format(path: str):
+def format_spreadsheet_path(path: str):
     """
     It checks the string is url or file path then convert to legitimate form.
     Args:
@@ -33,7 +33,7 @@ def control_spreadsheet_format(path: str):
     Private files raise authentication errors.
     """
     if path.startswith("http"):
-        path = path.replace("/edit#gid=", "/export?format=xlsx&gid=")
+        path = path.replace("/edit#gid=0", "/export?format=xlsx&gid=0")
 
     return path
 
@@ -50,8 +50,11 @@ class Crawler:
         Returns: List of TurkstatItemRecord
 
         """
+        file_path = format_spreadsheet_path(file_path)
+        logger.debug(
+            f"File path to fetch and read the spreadsheet is {file_path}"
+        )
 
-        file_path = control_spreadsheet_format(file_path)
         df = pd.read_excel(file_path, dtype="object")
         df = df[df["product_links"].notnull()]
 
