@@ -21,7 +21,7 @@ class ItemRecord:
     source: str
 
 
-def spreadsheet_format_converter(path: str):
+def control_spreadsheet_format(path: str):
     """
     It checks the string is url or file path then convert to legitimate form.
     Args:
@@ -51,7 +51,7 @@ class Crawler:
 
         """
 
-        file_path = spreadsheet_format_converter(file_path)
+        file_path = control_spreadsheet_format(file_path)
         df = pd.read_excel(file_path, dtype="object")
         df = df[df["product_links"].notnull()]
 
