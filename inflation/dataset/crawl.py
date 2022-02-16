@@ -21,6 +21,23 @@ class ItemRecord:
     source: str
 
 
+def format_spreadsheet_path(path: str):
+    """
+    It checks the string is url or file path then convert to legitimate form.
+    Args:
+        path (str): url of a google spreadsheet  or file path
+
+    Returns:
+
+    Note: The Google spreadsheet file must be shared publicly first before copy the full url.
+    Private files raise authentication errors.
+    """
+    if path.startswith("http"):
+        path = path.replace("/edit#gid=0", "/export?format=xlsx&gid=0")
+
+    return path
+
+
 class Crawler:
     def parse_excel_to_link_dataset(self, file_path):
         """It takes excel file path convert them into list of TurkstatItemRecord class and save it into a list.
@@ -33,10 +50,15 @@ class Crawler:
         Returns: List of TurkstatItemRecord
 
         """
-
-        records = []
+        file_path = format_spreadsheet_path(file_path)
+        logger.debug(
+            f"File path to fetch and read the spreadsheet is {file_path}"
+        )
 
         df = pd.read_excel(file_path, dtype="object")
+        df = df[df["product_links"].notnull()]
+
+        records = []
 
         for row in df.iterrows():
             item_code = row[1][0]
