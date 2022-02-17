@@ -6,3 +6,4 @@ venv
 portfolio/portfolio.sln
 portfolio/portfolio
 portfolio/node_modules
+*.pyc

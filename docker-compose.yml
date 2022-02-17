@@ -7,7 +7,6 @@ services:
       target: style
       dockerfile: Dockerfile
     image: imagination-ai/style
-    entrypoint: python
     volumes:
       - ./style:/applications/style
       - ./common:/applications/common
@@ -15,8 +14,28 @@ services:
       - "8080:8080"
     networks:
       - backend
-#    command: python /application/style/app.py
+    entrypoint: ["python", "/applications/style/main.py"]
     restart: "no"
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: on-failure
+
+  inflation:
+    build:
+      context: .
+      target: inflation
+      dockerfile: Dockerfile
+    image: imagination-ai/inflation
+    volumes:
+      - ./inflation:/applications/inflation
+      - ./common:/applications/common
+    ports:
+      - "8000:8000"
+    networks:
+      - backend
+    restart: "no"
+    entrypoint: ["python", "/applications/inflation/main.py"]
     deploy:
       replicas: 1
       restart_policy:

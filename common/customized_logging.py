@@ -32,6 +32,11 @@ def configure_logging():
                 "level": "INFO",
                 "propagate": True,
             },
+            "style": {
+                "handlers": ["default"],
+                "level": "INFO",
+                "propagate": True,
+            },
         },
     }
     global CONFIGURED
