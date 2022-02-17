@@ -28,5 +28,10 @@ crawl:
 clean:
 	rm -rf $(ENV)
 
+test:
+	APP_RESOURCE_DIR='style-resources' PYTHONPATH=$(PWD) pytest style-resources/tests
+	PYTHONPATH=$(PWD) pytest inflation-resources/tests
+
+
 kerem-%: .gitignore
 	echo $@ $* $<

@@ -27,12 +27,13 @@ repos:
         - --exclude=/(\.eggs|\.git|\.hg|\.venv|build|dist|portfolio|)/
         - --target-version=py38
         - -l 80
-#-   repo: local
-    #hooks:
-    #-   id: tests
-        #name: tests
-        #entry: pytest -v
-        #language: system
-        #pass_filenames: false
-        #types: [python]
-        #stages: [push]
+-   repo: local
+    hooks:
+    -   id: test for style
+        name: tests
+        entry: bash -c 'make test'
+        language: system
+        pass_filenames: false
+        types: [python]
+        stages: [push]
+        verbose: true

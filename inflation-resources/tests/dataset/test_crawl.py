@@ -77,14 +77,12 @@ def test_crawl_output(mock_requests_get, crawler, html_test_file):
         status_code=200, text=html_test_file
     )
     with tempfile.TemporaryDirectory() as tmpdirname:
-        fn = tmpdirname + "/" + "test"
-        crawler.crawl(RECORDS, fn)
+        test_data_fp = crawler.crawl(RECORDS, tmpdirname, "test")
         files = []
         for entry in os.listdir(tmpdirname):
             if os.path.isfile(os.path.join(tmpdirname, entry)):
                 files.append(entry)
         assert len(files) == 1
-        test_data_fp = tmpdirname + "/" + files[0]
         f = open(test_data_fp)
         test_data = json.load(f)
         assert test_data["item_code"] == "123"
@@ -104,14 +102,12 @@ def test_crawl_and_read_A101(crawler, inflation_data_reader):
 
     """
     with tempfile.TemporaryDirectory() as tmpdirname:
-        fn = tmpdirname + "/" + "test"
-        crawler.crawl(RECORDS_RND, fn)
+        test_data_fp = crawler.crawl(RECORDS_RND, tmpdirname, "test")
         files = []
         for entry in os.listdir(tmpdirname):
             if os.path.isfile(os.path.join(tmpdirname, entry)):
                 files.append(entry)
         assert len(files) == 1
-        test_data_fp = tmpdirname + "/" + files[0]
         record_data = inflation_data_reader.read(test_data_fp)
         for record in record_data:
             assert record.item_code == "123"
