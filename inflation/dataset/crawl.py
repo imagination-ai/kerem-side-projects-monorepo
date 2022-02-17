@@ -1,10 +1,12 @@
-from typing import List
-import logging
-import requests
-import json
-import pandas as pd
 from dataclasses import dataclass
 from datetime import datetime
+import json
+import logging
+import os
+from typing import List
+
+import pandas as pd
+import requests
 
 from common.customized_logging import configure_logging
 
@@ -29,7 +31,8 @@ def format_spreadsheet_path(path: str):
 
     Returns:
 
-    Note: The Google spreadsheet file must be shared publicly first before copy the full url.
+    Note: The Google spreadsheet file must be shared publicly first before copy the
+    full url.
     Private files raise authentication errors.
     """
 
@@ -42,18 +45,20 @@ def format_spreadsheet_path(path: str):
 
 class Crawler:
     def parse_excel_to_link_dataset(self, file_path):
-        """It takes excel file path convert them into list of TurkstatItemRecord class and save it into a list.
+        """It takes excel file path convert them into list of TurkstatItemRecord class
+        and save it into a list.
 
         Note: Only works with the first sheet of an Excel file.
 
         Args:
-            file_path: File path of the Excel file that includes the products information and their links/
+            file_path: File path of the Excel file that includes the products
+            information and their links/
 
         Returns: List of TurkstatItemRecord
 
         """
         file_path = format_spreadsheet_path(file_path)
-        logger.debug(
+        logger.info(
             f"File path to fetch and read the spreadsheet is {file_path}"
         )
 
@@ -76,20 +81,27 @@ class Crawler:
 
         return records
 
-    def crawl(self, records: List[ItemRecord], full_name_record_file):
+    def crawl(
+        self, records: List[ItemRecord], path="/", output_fn="python-crawl"
+    ):
         """
 
         Args:
+            output_fn:
+            path:
             records:
-            full_name_record_file:
 
         Returns:
-            Note: Logging file of this script is extremely important since the catches "un-crawled" pages.
+            Note: Logging file of this script is extremely important since the catches
+            "un-crawled" pages.
 
         """
         date = datetime.now().strftime("%Y%m%d%H%M%S")
+        output_fn_full_path = os.path.join(path, f"{output_fn}-{date}.jsonl")
+        total_saved = 0
 
-        with open(f"{full_name_record_file}-{date}.json", "w") as file:
+        with open(output_fn_full_path, "w") as file:
+            logger.info(f"Total of {len(records)} records will be processed.")
             for record in records:
                 date = datetime.now().strftime("%Y%m%d%H%M%S")
                 r = requests.get(record.product_url)
@@ -106,10 +118,17 @@ class Crawler:
                     }
                     data = json.dumps(d)
                     file.write(f"{data}\n")
+                    total_saved += 1
                 else:
                     logger.info(
-                        f"{record.product_name}'s page ({record.product_url}) hasn't been crawled (Status Code: {r.status_code}"
+                        f"{record.product_name}'s page ({record.product_url}) hasn't "
+                        f"been crawled (Status Code: {r.status_code}"
                     )
+            logger.info(
+                f"Total of {total_saved}/{len(records)} records are saved to "
+                f"{output_fn_full_path}"
+            )
+        return output_fn_full_path
 
 
 def run():
@@ -120,7 +139,7 @@ def run():
         "--excel-path", type=str, help="The file path excel database file"
     )
     parser.add_argument(
-        "--record-full-name", type=str, help="The name of the json record file"
+        "--path", type=str, help="The name of the json record file"
     )
 
     args = parser.parse_args()
@@ -128,7 +147,7 @@ def run():
 
     crawler = Crawler()
     records = crawler.parse_excel_to_link_dataset(file_path=args.excel_path)
-    crawler.crawl(records, full_name_record_file=args.record_full_name)
+    crawler.crawl(records, path=args.path)
 
 
 if __name__ == "__main__":

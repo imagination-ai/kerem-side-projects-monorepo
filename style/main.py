@@ -1,12 +1,14 @@
-from fastapi import FastAPI
 import logging
+
+from fastapi import FastAPI
 from starlette.middleware.cors import CORSMiddleware
 
+from common.customized_logging import configure_logging
 from style.api.middleware import add_middleware
 from style.api.routers import prediction
 from style.config import settings
 
-logging.basicConfig(level=logging.DEBUG)
+configure_logging()
 logger = logging.getLogger(__name__)
 
 app = FastAPI()

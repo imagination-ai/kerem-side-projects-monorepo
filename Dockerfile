@@ -72,7 +72,6 @@ COPY common /applications/common
 COPY inflation /build/inflation
 COPY inflation-resources/tests /build/tests
 COPY inflation-resources/data /build/data
-
 RUN \
     if [ "$skip_tests" = "" ] ; then \
         black \
@@ -86,7 +85,10 @@ RUN \
         echo "Skipping tests" ; \
     fi
 
+
+RUN mkdir -p /applications/downloaded-files/
 RUN mv /build/inflation /applications/inflation
+
 EXPOSE 8000
 
 COPY entrypoints/inflation-app-entrypoint.sh /applications/inflation-app-entrypoint.sh
