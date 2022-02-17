@@ -1,15 +1,11 @@
-import json
 import logging
-import multiprocessing as mp
 import os
 
 from fastapi import BackgroundTasks, FastAPI
 
-
 from common.customized_logging import configure_logging
 from inflation.config import settings
 from inflation.dataset.crawl import Crawler
-
 
 configure_logging()
 logger = logging.getLogger(__name__)
@@ -81,7 +77,7 @@ async def get_db_stats():
 if __name__ == "__main__":
     import uvicorn
 
-    # logger.warning("Friendly Warning: Local Development...")
+    logger.warning("Friendly Warning: Local Development...")
     uvicorn.run(
         "inflation.main:app",
         host=settings.APP_HOST,
