@@ -260,42 +260,6 @@ class InflationJSONMigrosDatasetReader(BaseJSONDataReader):
                 0
             ]
 
-            print(
-                InflationJSONMigrosDatasetReader.__get_product_name(
-                    subset_page_json
-                )
-            )
-            print(
-                InflationJSONMigrosDatasetReader.__get_product_url(
-                    subset_page_json
-                )
-            )
-            print(
-                InflationJSONMigrosDatasetReader.__get_product_code(
-                    subset_page_json
-                )
-            )
-            print(
-                InflationJSONMigrosDatasetReader.__get_product_brand(
-                    subset_page_json
-                )
-            )
-            print(
-                InflationJSONMigrosDatasetReader.__get_product_price(
-                    subset_page_json
-                )
-            )
-            print(
-                InflationJSONMigrosDatasetReader.__get_currency(
-                    subset_page_json
-                )
-            )
-            print(
-                InflationJSONMigrosDatasetReader.__item_in_stock(
-                    subset_page_json
-                )
-            )
-
         finally:
             driver.quit()
 
@@ -331,7 +295,7 @@ class InflationJSONMigrosDatasetReader(BaseJSONDataReader):
         if availability == InflationJSONMigrosDatasetReader.ITEM_IN_STOCK:
             return True
         elif availability == InflationJSONMigrosDatasetReader.ITEM_NOT_IN_STOCK:
-            pass
+            pass  # After checking true definition (item_not_in) I'll delete the pass
             return False
         else:
             print(subset_page_json["offers"]["availability"])
