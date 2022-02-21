@@ -33,6 +33,9 @@ ENV PYTHONPATH /applications
 
 ARG skip_tests
 
+#TODO(osman) decide later to find a better place here (especially when we add tests for common)
+COPY common /applications/common
+
 ##### 1. Leaf Image: Style #####
 FROM base as style
 
@@ -41,8 +44,6 @@ COPY style-resources/tests /build/tests
 COPY style-resources/resources /applications/resources
 COPY style-resources/datasets /applications/datasets
 COPY style-resources/models /applications/models
-
-
 
 RUN \
     if [ "$skip_tests" = "" ] ; then \
@@ -68,7 +69,6 @@ ENTRYPOINT ["sh", "/applications/style-app-entrypoint.sh"]
 ##### 2. Leaf Image: inflation #####
 FROM base as inflation
 
-COPY common /applications/common
 COPY inflation /build/inflation
 COPY inflation-resources/tests /build/tests
 COPY inflation-resources/data /build/data
