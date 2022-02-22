@@ -15,6 +15,7 @@ import requests
 
 from common.customized_logging import configure_logging
 
+
 configure_logging()
 logger = logging.getLogger(__name__)
 
@@ -29,34 +30,34 @@ class ItemRecord:
 
 
 class PageCrawlerRobot:
-    options = webdriver.ChromeOptions()
-    options.add_argument("--headless")
-    options.add_argument("--no-sandbox")  # Q: bu alttakilere gerek var mi?
-    options.add_argument("--disable-dev-shm-usage")
-    options.add_argument("--user-data-dir=chrome-data")
+    def __init__(self, executable_path="chromedriver", headless=True):
+        options = webdriver.ChromeOptions()
+        if headless:
+            options.add_argument("--headless")
 
-    def __init__(self, executable_path):
-        self.executable_path = executable_path
+        options.add_argument("--no-sandbox")  # Q: bu alttakilere gerek var mi?
+        options.add_argument("--disable-dev-shm-usage")
+        options.add_argument("--user-data-dir=chrome-data")
         self.driver = webdriver.Chrome(
-            executable_path=self.executable_path, options=self.options
+            executable_path=executable_path, options=options
         )
         self.wait = WebDriverWait(self.driver, 5)
 
+    def get_page(self, url, by=By.CLASS_NAME, field="price"):
+        self.driver.get(url)
+        try:
+            WebDriverWait(self.driver, 5).until(
+                EC.presence_of_element_located((by, field))
+            )
+            return BeautifulSoup(self.driver.page_source, "lxml").text
+        except (TimeoutError, ConnectionError):
+            # TODO (kerem): exception handling? think about it
+            pass
 
-class NewCrawler:
-    def __init__(
-        self,
-        chrome_driver_path="/Users/kerem/playground/kerem-side-projects-monorepo/common/chromedriver",
-    ):
-        self.page_crawler_robot = PageCrawlerRobot(chrome_driver_path)
 
+class Crawler:
     """
-Crawler --> spreadsheet'i okuyacak --> urunleri gezecek -->  urunun sayfasini acacak, hicbir sey filtrelemecek ve bir
-dosyaya o gunu kaydedecek. Sayfa formati soyle olacak: her satir json.   Satir1: {"html": sayfanin content'i-ne-varsa,
-"website": "migros", "url": urunun-cekildigi-url, "spreadsheet'ten gelen diger onemli bilgiler"} Satir2:
-{"html": sayfanin content'i-ne-varsa, "website": "a101", "url": urunun-cekildigi-url,
-"spreadsheet'ten gelen diger onemli bilgiler"}
-Bu dosya sonra gcloud.storage'a ziplenerek upload edilecek. Bu   Crawl   endpoint'imiz.
+
     Returns:
 
     """
@@ -76,7 +77,7 @@ Bu dosya sonra gcloud.storage'a ziplenerek upload edilecek. Bu   Crawl   endpoin
 
         Note: Only works with the first sheet of a spreadsheet file.
         """
-        file_path = NewCrawler.format_spreadsheet_path(file_path)
+        file_path = Crawler.format_spreadsheet_path(file_path)
         logger.info(
             f"File path to fetch and read the spreadsheet is {file_path}"
         )
@@ -91,7 +92,7 @@ Bu dosya sonra gcloud.storage'a ziplenerek upload edilecek. Bu   Crawl   endpoin
             item_name = row[1][1]
             product_name = row[1][2]
             link = row[1][3]
-            source = link.split(".")[1].capitalize()
+            source = link.split(".")[1]
 
             record = ItemRecord(
                 item_code, item_name, product_name, link, source
@@ -120,97 +121,48 @@ Bu dosya sonra gcloud.storage'a ziplenerek upload edilecek. Bu   Crawl   endpoin
 
         return path
 
-    @staticmethod
-    def select_right_crawler(source: str):
-        crawl_functions = {
-            "A101": NewCrawler.crawl_A101,
-            "Migros": NewCrawler.crawl_Migros,
-        }
+    def get_page(self, url):
+        r = requests.get(url)
 
-        return crawl_functions[source]
+        if r.status_code == 200:
+            return BeautifulSoup(r.text, "lxml").text
 
-    @staticmethod
-    def crawl(records: List[ItemRecord], path="/", output_fn="python-crawl"):
-        # why did we need need this path, parameters? and why did we give "python-crawl" default input?
+    def crawl(self, record: ItemRecord):
         """
-
         Args:
-            records:
-            path:
-            output_fn:
-
+            record (ItemRecord):
         Returns:
 
         """
-        date_stamp_output_file = datetime.now().strftime("%Y%m%d%H%M%S")
-        output_fn_full_path = os.path.join(
-            path, f"{output_fn}-{date_stamp_output_file}.jsonl"
-        )
-        total_saved = 0
 
-        with open(output_fn_full_path, "w") as file:
-            logger.info(f"Total of {len(records)} records will be processed.")
-            for record in records:
-                date_stamp_record_file = datetime.now().strftime("%Y%m%d%H%M%S")
-                crawler_func = NewCrawler.select_right_crawler(record.source)
-                d = {
-                    "text": crawler_func(
-                        record.product_url, record.product_name
-                    ),
-                    "timestamp": date_stamp_record_file,
-                    "item_name": record.item_name,
-                    "item_code": record.item_code,
-                    "product_name": record.product_name,
-                    "source": record.source,
-                }
-                data = json.dumps(d)
-                file.write(f"{data}\n")
-                total_saved += 1
-
-            logger.info(
-                f"Total of {total_saved}/{len(records)} records are saved to "
-                f"{output_fn_full_path}"
-            )
-
-        return output_fn_full_path
-
-    @staticmethod
-    def crawl_A101(product_url, product_name):
-        r = requests.get(product_url)
-
-        if r.status_code == 200:
-            return BeautifulSoup(r.text, "html.parser")
-        else:
-            logger.info(  # Q: Should we change logging type? (Warning or else?)
-                f"{product_name}'s page ({product_url}) hasn't "
-                f"been crawled (Status Code: {r.status_code}"
-            )
-
-    def crawl_Migros(
-        self, product_url, product_name
-    ):  # bu robotu class variable olarak mi alsak?
-        self.page_crawler_robot.get(product_url)
-
-        try:
-            self.page_crawler_robot.wait.until(
-                EC.presence_of_element_located((By.CLASS_NAME, "price"))
-            )
-            return BeautifulSoup(
-                self.page_crawler_robot.page_source, "html.parser"
-            )
-        except (
-            RuntimeError,
-            TypeError,
-        ):  # Q: bos verince olmuyordu bu kismi nasil yapmak lazim acaba?
-            logger.info(  # Q: Should we change logging type? (Warning or else?)
-                f"{product_name}'s page ({product_url}) hasn't been crawled."
-            )
+        page = self.get_page(record.product_url)
+        if page is not None:
+            return {
+                "text": page,
+                "timestamp": datetime.now().strftime("%Y%m%d%H%M%S"),
+                "item_name": record.item_name,
+                "item_code": record.item_code,
+                "product_name": record.product_name,
+                "source": record.source,
+            }
 
 
-##### Eski dosyalar
+class MigrosCrawler(Crawler):
+    def __init__(self):
+        self.robot = PageCrawlerRobot()
+
+    def get_page(self, url):
+        return self.robot.get_page(url)
 
 
-class Crawler:
+class A101Crawler(Crawler):
+    pass
+
+
+class CrawlerManager:
+    def __init__(self, crawlers: dict):
+        self.crawlers = crawlers
+
     def parse_excel_to_link_dataset(self, file_path):
         """It takes excel file path convert them into list of TurkstatItemRecord class
         and save it into a list.
@@ -224,7 +176,7 @@ class Crawler:
         Returns: List of TurkstatItemRecord
 
         """
-        file_path = NewCrawler.format_spreadsheet_path(file_path)
+        file_path = Crawler.format_spreadsheet_path(file_path)
         logger.info(
             f"File path to fetch and read the spreadsheet is {file_path}"
         )
@@ -239,7 +191,7 @@ class Crawler:
             item_name = row[1][1]
             product_name = row[1][2]
             link = row[1][3]
-            source = link.split(".")[1].capitalize()
+            source = link.split(".")[1].lower()
 
             record = ItemRecord(
                 item_code, item_name, product_name, link, source
@@ -248,53 +200,28 @@ class Crawler:
 
         return records
 
-    def crawl(
-        self, records: List[ItemRecord], path="/", output_fn="python-crawl"
+    def start_crawling(
+        self, records: List[ItemRecord], path="/", output_fn="inflation-crawl"
     ):
-        """
-
-        Args:
-            output_fn:
-            path:
-            records:
-
-        Returns:
-            Note: Logging file of this script is extremely important since the catches
-            "un-crawled" pages.
-
-        """
-        date = datetime.now().strftime("%Y%m%d%H%M%S")
-        output_fn_full_path = os.path.join(path, f"{output_fn}-{date}.jsonl")
+        date_stamp_output_file = datetime.now().strftime("%Y%m%d%H%M%S")
+        output_fn_full_path = os.path.join(
+            path, f"{output_fn}-{date_stamp_output_file}.jsonl"
+        )
         total_saved = 0
 
         with open(output_fn_full_path, "w") as file:
             logger.info(f"Total of {len(records)} records will be processed.")
             for record in records:
-                date = datetime.now().strftime("%Y%m%d%H%M%S")
-                r = requests.get(record.product_url)
+                d = self.crawlers[record.source.lower()].crawl(record)
 
-                if r.status_code == 200:
+                data = json.dumps(d)
+                file.write(f"{data}\n")
+                total_saved += 1
 
-                    d = {
-                        "text": r.text,
-                        "timestamp": date,
-                        "item_name": record.item_name,
-                        "item_code": record.item_code,
-                        "product_name": record.product_name,
-                        "source": record.source,
-                    }
-                    data = json.dumps(d)
-                    file.write(f"{data}\n")
-                    total_saved += 1
-                else:
-                    logger.info(
-                        f"{record.product_name}'s page ({record.product_url}) hasn't "
-                        f"been crawled (Status Code: {r.status_code}"
-                    )
             logger.info(
-                f"Total of {total_saved}/{len(records)} records are saved to "
-                f"{output_fn_full_path}"
+                f"Total of {total_saved}/{len(records)} records are saved to {output_fn_full_path}"
             )
+
         return output_fn_full_path
 
 
@@ -303,7 +230,9 @@ def run():
 
     parser = argparse.ArgumentParser(description="crawl items from website")
     parser.add_argument(
-        "--excel-path", type=str, help="The file path excel database file"
+        "--excel-path",
+        type=str,
+        help="The file path or url of spreadsheet database file",
     )
     parser.add_argument(
         "--path", type=str, help="The name of the json record file"
@@ -312,9 +241,34 @@ def run():
     args = parser.parse_args()
     logger.info(f"{args}")
 
-    crawler = Crawler()
-    records = crawler.parse_excel_to_link_dataset(file_path=args.excel_path)
-    crawler.crawl(records, path=args.path)
+    crawlers = {"a101": A101Crawler(), "migros": MigrosCrawler()}
+    cm = CrawlerManager(crawlers)
+    records = cm.parse_excel_to_link_dataset(file_path=args.excel_path)
+    cm.start_crawling(records, path=args.path)
+
+    # import argparse
+    #
+    # parser = argparse.ArgumentParser(description="crawl items from website")
+    # parser.add_argument(
+    #     "--excel-path", type=str, help="The file path excel database file"
+    # )
+    # parser.add_argument(
+    #     "--path", type=str, help="The name of the json record file"
+    # )
+    #
+    # args = parser.parse_args()
+    # logger.info(f"{args}")
+    #
+    # crawler = Crawler()
+    # records = crawler.parse_excel_to_link_dataset(file_path=args.excel_path)
+    # crawler.crawl(records, path=args.path)
+    # crawl parameters configuration --excel-path /Users/kerem/playground/kerem-side-projects-monorepo/inflation-resources/data/links.xlsx --record-full-name /Users/kerem/playground/kerem-side-projects-monorepo/inflation-resources/data/a101
+
+    # Re-visit this part for create bettter test source code
+    # robot = PageCrawlerRobot()
+    # page_source = robot.get_page("https://www.migros.com.tr/pinar-organik-sut-1-l-p-a822f9")
+    # with open('readme.txt', 'w') as f:
+    #     f.write(page_source)
 
 
 if __name__ == "__main__":

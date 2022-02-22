@@ -1,9 +1,14 @@
+import os
+from pathlib import Path
 from unittest import mock
 
 import pytest
 
-from style.constants import TEST_DATA_FILENAME
 from style.crawler.crawl import GutenbergWrangler
+
+STYLE_RESOURCES_PATH = Path(
+    os.getenv("APP_RESOURCE_DIR", Path(__file__).parents[3])
+)
 
 
 @pytest.fixture(scope="function")
@@ -15,8 +20,8 @@ def gutenberg_wrangler():
 def html_test_file():
     import codecs
 
-    f = codecs.open(TEST_DATA_FILENAME, "r").read()
-    return f
+    fp = STYLE_RESOURCES_PATH / "resources" / "test_page.html"
+    return codecs.open(fp, "r").read()
 
 
 class TestGutenbergWrangler:
