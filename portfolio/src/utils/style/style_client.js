@@ -13,7 +13,7 @@ export default class StyleClient {
 
   predict = async (text, model_name) => {
     const url = this.base_url + '/Predictions/predict'
-    let data = { text: text, model_name: model_name } 
+    let data = { text: text, model_name: model_name }
 
     // axios
     //   .post(url, data, {
@@ -25,6 +25,7 @@ export default class StyleClient {
     //     predictionSetter(response)
     //   })
     const results = await axios.post(url, data);
+    console.log(results)
     return results;
     // console.log('Predictions: ' + JSON.stringify(preds))
     // return preds.data;

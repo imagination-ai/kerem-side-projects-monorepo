@@ -1,23 +1,16 @@
 import React, { useState } from 'react'
 import { useParams } from 'react-router-dom'
-import MarkdownTranslator from '../MarkdownTranslator/MarkdownTranslator'
 import { getProject } from '../Projects/Projects'
 import StyleClient from '../../utils/style/style_client'
+import Form from 'react-bootstrap/Form'
+import 'bootstrap/dist/css/bootstrap.min.css'
+import Button from 'react-bootstrap/Button'
+import Table from 'react-bootstrap/Table'
 
 const client = new StyleClient(
   process.env.REACT_APP_STYLE_HOST || 'localhost',
   process.env.REACT_APP_STYLE_PORT || '8080'
 )
-
-const content = `# What we do 
-
-In this project, we created a few models with different sizes each of
-which take text as input, and returns a list of of authors.
-The bigger the probability, the closer the style of the corresponding author. 
-
-Currently, we returns only the **top 3 authors**.
-
-`
 
 export default function StyleProject (props) {
   let params = useParams()
@@ -26,7 +19,7 @@ export default function StyleProject (props) {
   const [predictions, setPredictions] = useState({})
   const [inputField, setInputField] = useState({
     text: '',
-    model_name: ''
+    model_name: 'mock'
   })
 
   const inputsHandler = e => {
@@ -39,27 +32,23 @@ export default function StyleProject (props) {
 
   const predictionToTable = prediction => {
     return (
-      <table>
-        <tbody>
-          <tr>
-            <th>Author</th>
-            <th>Probability</th>
-          </tr>
-          {Object.entries(predictions).map(([key, value]) => {
-            console.log(key, value)
-            return (
-              <tr key={key}>
-                <td>{key}</td>
-                <td>{value}</td>
-              </tr>
-            )
-          })}
-        </tbody>
-      </table>
+      <tbody>
+        {Object.entries(predictions).map(([key, value]) => {
+          // console.log(key, value)
+          return (
+            <tr key={key}>
+              <td></td>
+              <td>{key}</td>
+              <td>{value}</td>
+            </tr>
+          )
+        })}
+      </tbody>
     )
   }
 
   const handlePredictions = async () => {
+    console.log(inputField.text)
     const results = await client.predict(inputField.text, inputField.model_name)
     setPredictions(results.data['prediction'])
     // setPredictions(JSON.stringify(results.data['prediction']))
@@ -68,35 +57,72 @@ export default function StyleProject (props) {
   return (
     <div>
       <h1>{project.title}</h1>
-      <div> {project.description}</div>
-      {<MarkdownTranslator>{content}</MarkdownTranslator>}
-
-      <p>Text: {inputField.text}</p>
-      <p>Model Name: {inputField.model_name}</p>
-      <div>{predictionToTable(predictions)}</div>
       <div>
-        <input
-          type='text'
-          name='text'
-          onChange={inputsHandler}
-          placeholder='Text?'
-          value={inputField.text}
-        />
-
-        <br />
-
-        <input
-          type='text'
-          name='model_name'
-          onChange={inputsHandler}
-          placeholder='Model Name?'
-          value={inputField.model_name}
-        />
-
-        <br />
-
-        <button onClick={handlePredictions}>Submit Now</button>
+        <br></br>
+        <i> {project.description}</i>
       </div>
+
+      <br></br>
+
+      <p>
+        What we do In this project, we created a few models with different sizes
+        each of which take text as input, and returns a list of of authors. The
+        bigger the probability, the closer the style of the corresponding
+        author. Currently, we return only the <b>top 3 authors</b>.
+      </p>
+      <p>
+        <b>Text:</b> "{inputField.text}"
+      </p>
+      <p>
+        <b>Model Name:</b> "{inputField.model_name}"
+      </p>
+
+      <Table striped bordered hover>
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Author</th>
+            <th>Probability</th>
+          </tr>
+        </thead>
+        {predictionToTable(predictions)}
+      </Table>
+
+      <br></br>
+
+      <Form>
+        <Form.Group className='mb-3' controlId='formBasicEmail'>
+          <Form.Label>
+            Jot down or copy some text. We can tell you wrote this!
+          </Form.Label>
+          <Form.Control
+            // type='email'
+            name='text'
+            value={inputField.text}
+            onChange={inputsHandler}
+            placeholder='It was the best of times, it was the worst of times...'
+          />
+          <Form.Text className='text-muted'>
+            Copy or write some snippet to figure out who would be the author...
+          </Form.Text>
+        </Form.Group>
+
+        <Form.Group className='mb-3' controlId='formBasicPassword'>
+          <Form.Select
+            aria-label='Default select example'
+            name='model_name'
+            value={inputField.model_name}
+            onChange={inputsHandler}
+          >
+            <option value='small'>small-model</option>
+            <option value='mock'>mock-model</option>
+          </Form.Select>
+        </Form.Group>
+
+        <Button variant='primary' onClick={handlePredictions}>
+          Submit
+        </Button>
+      </Form>
     </div>
   )
 }

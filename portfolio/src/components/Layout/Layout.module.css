@@ -15,7 +15,7 @@
 
 .header {
   grid-area: header;
-  border-color: black;
+  border-color: rgb(114, 21, 21);
 }
 
 .header .title {
