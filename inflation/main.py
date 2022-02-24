@@ -5,13 +5,13 @@ from fastapi import BackgroundTasks, FastAPI
 
 from common.customized_logging import configure_logging
 from inflation.config import settings
-from inflation.dataset.crawl import Crawler
+from inflation.dataset.crawl import CrawlerManager
 
 configure_logging()
 logger = logging.getLogger(__name__)
 
 app = FastAPI()
-crawler = Crawler()
+cm = CrawlerManager()
 
 OUTPUT_PATH = "/applications/downloaded-files/"
 
@@ -30,8 +30,8 @@ def fetch_inflation_data(excel_path, output_path):
     logger.info(
         f"Crawling started with {excel_path} and output_path is {output_path}"
     )
-    records = crawler.parse_excel_to_link_dataset(excel_path)
-    crawler.crawl(records, output_path)
+    records = cm.parse_excel_to_link_dataset(excel_path)
+    cm.start_crawling(records, output_path)
     logger.info(f"Crawling done for {excel_path}")
 
 
