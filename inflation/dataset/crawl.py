@@ -9,6 +9,7 @@ from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
+from selenium.common.exceptions import NoSuchElementException
 from bs4 import BeautifulSoup
 import pandas as pd
 import requests
@@ -50,7 +51,7 @@ class PageCrawlerRobot:
                 EC.presence_of_element_located((by, field))
             )
             return BeautifulSoup(self.driver.page_source, "lxml").text
-        except (TimeoutError, ConnectionError):
+        except NoSuchElementException:
             # TODO (kerem): exception handling? think about it
             pass
 
@@ -77,7 +78,7 @@ class Crawler:
 
         Note: Only works with the first sheet of a spreadsheet file.
         """
-        file_path = Crawler.format_spreadsheet_path(file_path)
+        file_path = CrawlerManager.format_spreadsheet_path(file_path)
         logger.info(
             f"File path to fetch and read the spreadsheet is {file_path}"
         )
@@ -100,26 +101,6 @@ class Crawler:
             records.append(record)
 
         return records
-
-    @staticmethod
-    def format_spreadsheet_path(path: str):
-        """
-        It checks the string is url or file path then convert to legitimate form.
-        Args:
-            path (str): url of a Google spreadsheet or file path.
-
-        Returns:
-
-        Note: The Google spreadsheet file must be shared publicly first before copy the
-        full url.
-        Private files raise authentication errors.
-        """
-
-        path = str(path)
-        if path.startswith("http"):
-            path = path.replace("/edit#gid=0", "/export?format=xlsx&gid=0")
-
-        return path
 
     def get_page(self, url):
         r = requests.get(url)
@@ -200,6 +181,26 @@ class CrawlerManager:
 
         return records
 
+    @staticmethod
+    def format_spreadsheet_path(path: str):
+        """
+        It checks the string is url or file path then convert to legitimate form.
+        Args:
+            path (str): url of a Google spreadsheet or file path.
+
+        Returns:
+
+        Note: The Google spreadsheet file must be shared publicly first before copy the
+        full url.
+        Private files raise authentication errors.
+        """
+
+        path = str(path)
+        if path.startswith("http"):
+            path = path.replace("/edit#gid=0", "/export?format=xlsx&gid=0")
+
+        return path
+
     def start_crawling(
         self, records: List[ItemRecord], path="/", output_fn="inflation-crawl"
     ):
@@ -245,30 +246,6 @@ def run():
     cm = CrawlerManager(crawlers)
     records = cm.parse_excel_to_link_dataset(file_path=args.excel_path)
     cm.start_crawling(records, path=args.path)
-
-    # import argparse
-    #
-    # parser = argparse.ArgumentParser(description="crawl items from website")
-    # parser.add_argument(
-    #     "--excel-path", type=str, help="The file path excel database file"
-    # )
-    # parser.add_argument(
-    #     "--path", type=str, help="The name of the json record file"
-    # )
-    #
-    # args = parser.parse_args()
-    # logger.info(f"{args}")
-    #
-    # crawler = Crawler()
-    # records = crawler.parse_excel_to_link_dataset(file_path=args.excel_path)
-    # crawler.crawl(records, path=args.path)
-    # crawl parameters configuration --excel-path /Users/kerem/playground/kerem-side-projects-monorepo/inflation-resources/data/links.xlsx --record-full-name /Users/kerem/playground/kerem-side-projects-monorepo/inflation-resources/data/a101
-
-    # Re-visit this part for create bettter test source code
-    # robot = PageCrawlerRobot()
-    # page_source = robot.get_page("https://www.migros.com.tr/pinar-organik-sut-1-l-p-a822f9")
-    # with open('readme.txt', 'w') as f:
-    #     f.write(page_source)
 
 
 if __name__ == "__main__":

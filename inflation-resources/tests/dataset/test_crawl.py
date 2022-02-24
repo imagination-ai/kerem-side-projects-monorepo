@@ -3,6 +3,7 @@ import json
 import pytest
 import tempfile
 import os
+import codecs
 from unittest import mock
 from pathlib import Path
 from inflation.dataset.crawl import CrawlerManager
@@ -24,29 +25,8 @@ RECORDS = {
     "a101": [
         ItemRecord("123", "pirinc", "ovadan", "http://www.a101.com", "a101")
     ],
-    "a101-mig": [
-        ItemRecord("505", "sut", "pinar", "http://www.a101.com", "a101")
-    ],
-}
-
-RECORDS_RND = {
-    "a101": [
-        ItemRecord(
-            "123",
-            "pirinc",
-            "ovadan",
-            "https://www.a101.com.tr/market/ovadan-pirinc-baldo-1000-g-1",
-            "a101",
-        )
-    ],
     "migros": [
-        ItemRecord(
-            "505",
-            "sut",
-            "pinar",
-            "https://www.migros.com.tr/pinar-organik-sut-1-l-p-a822f9",
-            "migros",
-        )
+        ItemRecord("505", "sut", "pinar", "http://www.migros.com", "migros")
     ],
 }
 
@@ -58,7 +38,6 @@ def inflation_data_reader():
 
 @pytest.fixture(scope="module")
 def html_test_file_for_a101():
-    import codecs
 
     return codecs.open(
         INFLATION_RESOURCES_PATH / TEST_PAGES_PATH["a101"], "r"
@@ -67,7 +46,6 @@ def html_test_file_for_a101():
 
 @pytest.fixture(scope="module")
 def html_test_file_for_migros():
-    import codecs
 
     return codecs.open(
         INFLATION_RESOURCES_PATH / TEST_PAGES_PATH["migros"], "r"
@@ -126,27 +104,23 @@ def test_start_crawling_check_output_for_a101(
         assert test_data["item_name"] == "pirinc"
         assert test_data["product_name"] == "ovadan"
         assert test_data["source"] == "a101"
-        assert (
-            len(test_data["text"]) == 31721
-        )  # TODO: (KEREM) validate if this is correct.
+        assert len(test_data["text"]) == 31721
 
 
-@mock.patch("inflation.dataset.crawl.requests.get")
+@mock.patch("inflation.dataset.crawl.PageCrawlerRobot.get_page")
 def test_start_crawling_check_output_for_migros(
-    mock_requests_get, crawler_manager, html_test_file_for_migros
+    mock_get_page, crawler_manager, html_test_file_for_migros
 ):
     """
     (1) It tests the Crawler's start crawling method using Migros case, creates output file (a json).
     (2) It tests this file exist or not.
     """
 
-    mock_requests_get.return_value = mock.Mock(
-        status_code=200,
-        text=html_test_file_for_migros,  # TODO: I must change mock part since this use selenium
-    )
+    mock_get_page.return_value = html_test_file_for_migros
+
     with tempfile.TemporaryDirectory() as tmpdirname:
         test_data_fp = crawler_manager.start_crawling(
-            RECORDS["a101-mig"], tmpdirname
+            RECORDS["migros"], tmpdirname
         )
         files = []
         for entry in os.listdir(tmpdirname):
@@ -158,36 +132,7 @@ def test_start_crawling_check_output_for_migros(
         assert test_data["item_code"] == "505"
         assert test_data["item_name"] == "sut"
         assert test_data["product_name"] == "pinar"
-        assert test_data["source"] == "a101"
         assert (
-            len(test_data["text"]) == 6561
-        )  # TODO(KEREM) validate if this is correct.
-
-
-# TODO: I'll add this part after re-writing reader parser
-# def test_crawler_still_works_for_a101(crawler_manager):
-#     """
-#     It tests our crawler and reader still works on the A101 website.
-#     It's an online test it should fail time to time.
-#
-#     Returns:
-#
-#     """
-#     with tempfile.TemporaryDirectory() as tmpdirname:
-#         test_data_fp = crawler_manager.start_crawling(RECORDS_RND['a101'], tmpdirname, "test")
-#         files = []
-#         for entry in os.listdir(tmpdirname):
-#             if os.path.isfile(os.path.join(tmpdirname, entry)):
-#                 files.append(entry)
-#         assert len(files) == 1
-#         record_data = inflation_data_reader.read(test_data_fp)
-#         for record in record_data:
-#             assert record.item_code == "123"
-#             assert record.item_name == "pirinc"
-#             assert record.source == "a101"
-#             assert record.product_name == "Ovadan Pirinç Baldo 1000 G"
-#             assert record.product_code == "14001902"
-#             assert record.product_brand == "Ovadan"
-#             assert record.currency == "TRY"
-
-# TODO: I'll add another test for migros
+            test_data["source"] == "migros"
+        )  # Q: bu niye ve nasil a101 donuyor
+        assert len(test_data["text"]) == 6563
