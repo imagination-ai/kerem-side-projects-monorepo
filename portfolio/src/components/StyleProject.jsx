@@ -1,7 +1,6 @@
 import React, { useState } from 'react'
 import { useParams } from 'react-router-dom'
-import { getProject } from '../Projects/Projects'
-import StyleClient from '../../utils/style/style_client'
+import StyleClient from '../style/style_client'
 import Form from 'react-bootstrap/Form'
 import 'bootstrap/dist/css/bootstrap.min.css'
 import Button from 'react-bootstrap/Button'
@@ -12,9 +11,14 @@ const client = new StyleClient(
   process.env.REACT_APP_STYLE_PORT || '8080'
 )
 
+
+// export function getProject (index) {
+//   return projects[index]
+// }
+
 export default function StyleProject (props) {
   let params = useParams()
-  let project = getProject(parseInt(params.projectId, 10))
+  // let project = getProject(parseInt(params.projectId, 10))
 
   const [predictions, setPredictions] = useState({})
   const [inputField, setInputField] = useState({
@@ -56,10 +60,10 @@ export default function StyleProject (props) {
 
   return (
     <div>
-      <h1>{project.title}</h1>
+      <h1>{props.project.title}</h1>
       <div>
         <br></br>
-        <i> {project.description}</i>
+        <i> {props.project.description}</i>
       </div>
 
       <br></br>
