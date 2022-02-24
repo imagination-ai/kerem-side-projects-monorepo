@@ -144,7 +144,8 @@ class CrawlerManager:
     def __init__(self, crawlers: dict):
         self.crawlers = crawlers
 
-    def parse_excel_to_link_dataset(self, file_path):
+    @staticmethod
+    def parse_excel_to_link_dataset(file_path):
         """It takes excel file path convert them into list of TurkstatItemRecord class
         and save it into a list.
 
@@ -157,7 +158,7 @@ class CrawlerManager:
         Returns: List of TurkstatItemRecord
 
         """
-        file_path = Crawler.format_spreadsheet_path(file_path)
+        file_path = CrawlerManager.format_spreadsheet_path(file_path)
         logger.info(
             f"File path to fetch and read the spreadsheet is {file_path}"
         )
