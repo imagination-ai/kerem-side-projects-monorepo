@@ -1,8 +1,9 @@
 # common
 requests
+selenium
+beautifulsoup4
 
 # style app reqs
-beautifulsoup4
 scikit_learn
 urlpath
 dill

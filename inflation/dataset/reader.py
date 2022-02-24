@@ -8,8 +8,15 @@ import pandas as pd
 from dataclasses import dataclass
 from pathlib import Path
 from bs4 import BeautifulSoup
+from selenium import webdriver
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
 
 from common.customized_logging import configure_logging
+from common.utils.mathematical_conversation_utils import (
+    convert_price_to_us,
+)
 
 SAVED_DATASETS_DIR_PATH = (
     Path(__file__).parents[2] / "inflation-resources/data/"
