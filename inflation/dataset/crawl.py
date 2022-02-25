@@ -63,45 +63,6 @@ class Crawler:
 
     """
 
-    @staticmethod
-    def parse_excel_to_link_dataset(file_path) -> List[ItemRecord]:
-        """
-        The function first reads the spreadsheet file containing item codes, names (COICOP),
-        and related products with their links, then parse the source information (e.g., Migros, A101, etc.)
-        and save the product's information as ItemRecord. It returns a list of ItemRecords.
-
-
-        Args:
-            file_path (str): An Excel file path or  a Google SpreadSheet URL.
-
-        Returns (list): List of ItemRecords.
-
-        Note: Only works with the first sheet of a spreadsheet file.
-        """
-        file_path = CrawlerManager.format_spreadsheet_path(file_path)
-        logger.info(
-            f"File path to fetch and read the spreadsheet is {file_path}"
-        )
-
-        df = pd.read_excel(file_path, dtype="object")
-        df = df[df["product_links"].notnull()]
-
-        records = []
-
-        for row in df.iterrows():
-            item_code = row[1][0]
-            item_name = row[1][1]
-            product_name = row[1][2]
-            link = row[1][3]
-            source = link.split(".")[1]
-
-            record = ItemRecord(
-                item_code, item_name, product_name, link, source
-            )
-            records.append(record)
-
-        return records
-
     def get_page(self, url):
         r = requests.get(url)
 
@@ -112,7 +73,7 @@ class Crawler:
         """
         Args:
             record (ItemRecord):
-        Returns:
+        Returns (dict):
 
         """
 
@@ -146,16 +107,18 @@ class CrawlerManager:
 
     @staticmethod
     def parse_excel_to_link_dataset(file_path):
-        """It takes excel file path convert them into list of TurkstatItemRecord class
-        and save it into a list.
+        """
+        The function first reads the spreadsheet file containing item codes, names (COICOP),
+        and related products with their links, then parse the source information (e.g., Migros, A101, etc.)
+        and save the product's information as ItemRecord. It returns a list of ItemRecords.
 
-        Note: Only works with the first sheet of an Excel file.
 
         Args:
-            file_path: File path of the Excel file that includes the products
-            information and their links/
+            file_path (str): An Excel file path or  a Google SpreadSheet URL.
 
-        Returns: List of TurkstatItemRecord
+        Returns (list): List of ItemRecords.
+
+        Note: Only works with the first sheet of a spreadsheet file.
 
         """
         file_path = CrawlerManager.format_spreadsheet_path(file_path)

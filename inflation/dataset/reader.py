@@ -27,11 +27,6 @@ configure_logging()
 logger = logging.getLogger(__name__)
 
 
-class BaseJSONDataReader:
-    def read(self, filename, columns=None):
-        raise NotImplementedError()
-
-
 @dataclass
 class InflationDataRecord:
     item_code: str
@@ -104,7 +99,114 @@ class InflationDatasetIterator:
             return result
 
 
-class InflationJSONA101DatasetReader(BaseJSONDataReader):
+class ParserManager:
+    def __init__self(self, parsers: dict):
+        self.parsers = parsers
+
+    def start_parsing_from_google_storage(
+        self,
+        google_storage_client,
+        data_file_path: str,
+        destination_file_path: str,
+    ):
+        """
+
+        Args:
+            data_file_path (str): The data file path in the Google Storage.
+            destination_file_path (str): The destination file path for saving the file.
+
+        Returns:
+
+        """
+        google_storage_client.download(data_file_path, destination_file_path)
+        return self._start_parsing(destination_file_path)
+
+    def start_parsing_from_drive(self, data_file_path: str):
+        return self._start_parsing(data_file_path)
+
+    def _start_parsing(self, data_file_path: str):
+        records = []
+
+        with open(data_file_path, "rt", encoding="UTF-8") as file:
+            total_pages = 0
+            item_pages = 0
+            for line in file:
+                line = json.loads(line)
+                total_pages += 1
+                records.append(self.parsers[line["source"].lower()])
+                item_pages += 1
+        logger.info(f"total_pages={total_pages}, item_pages={item_pages}")
+
+        return InflationDataset(records)
+
+
+class Parser:
+    @staticmethod
+    def __convert_sample_date(date: str):
+        return datetime.datetime.strptime(date, "%Y%m%d%H%M%S")
+
+    def __get_product_name(self, soup):
+        NotImplemented
+
+    def __get_product_url(self, soup):
+        NotImplemented
+
+    def __get_product_code(self, soup):
+        NotImplemented
+
+    def __get_product_brand(self, soup):
+        NotImplemented
+
+    def __get_product_price(self, soup):
+        NotImplemented
+
+    def __get_currency(self, soup):
+        NotImplemented
+
+    def __item_in_stock(self, soup):
+        NotImplemented
+
+    def __is_product_page(self, soup):
+        NotImplemented
+
+    def parse(self, line) -> InflationDataRecord:
+
+        """It goes through the `filename` and create InflationRecords
+
+        Args:
+            line:
+
+
+        Returns: record
+
+        """
+        item_code, item_name, source = (
+            line["item_code"],
+            line["item_name"],
+            line["source"],
+        )
+        date = Parser.__convert_sample_date(line["timestamp"])
+        soup = BeautifulSoup(line["text"], "lxml")
+        if self.__is_product_page(soup):
+
+            record = InflationDataRecord(
+                item_code,
+                item_name,
+                source,
+                self.__get_product_name(soup),
+                self.__get_product_url(soup),
+                self.__get_product_code(soup),
+                self.__get_product_brand(soup),
+                self.__get_product_price(soup),
+                self.__get_currency(soup),
+                self.__item_in_stock(soup),
+                date,
+            )
+
+        return record
+
+
+class A101Parser(Parser):
     ITEM_IN_STOCK = "in stock"
     ITEM_NOT_IN_STOCK = "out of stock"
 
@@ -162,9 +264,9 @@ class InflationJSONA101DatasetReader(BaseJSONDataReader):
             .attrs["content"]
             .strip()
         )
-        if availability == InflationJSONA101DatasetReader.ITEM_IN_STOCK:
+        if availability == A101Parser.ITEM_IN_STOCK:
             return True
-        elif availability == InflationJSONA101DatasetReader.ITEM_NOT_IN_STOCK:
+        elif availability == A101Parser.ITEM_NOT_IN_STOCK:
             return False
         else:
             print(availability)
@@ -183,61 +285,11 @@ class InflationJSONA101DatasetReader(BaseJSONDataReader):
             ]
         )
 
-    def read(self, filename, fields=None) -> InflationDataset:
-        """It goes through the `filename` and create InflationRecords
-
-        Args:
-            filename:
-            fields: fields to include. If it is None, include everything.
-
-        Returns:
-
-        """
-        records = []
-        with open(filename, "rt", encoding="UTF-8") as file:
-            total_pages = 0
-            item_pages = 0
-            for line in file:
-                line = json.loads(line)
-                total_pages += 1
-
-                item_code, item_name, source = (
-                    line["item_code"],
-                    line["item_name"],
-                    line["source"],
-                )
-
-                date = InflationJSONA101DatasetReader.__convert_sample_date(
-                    line["timestamp"]
-                )
-                soup = BeautifulSoup(line["text"], "lxml")
-                if InflationJSONA101DatasetReader.__is_product_page(soup):
-                    item_pages += 1
-                    record = InflationDataRecord(
-                        item_code,
-                        item_name,
-                        source,
-                        InflationJSONA101DatasetReader.__get_product_name(soup),
-                        InflationJSONA101DatasetReader.__get_product_url(soup),
-                        InflationJSONA101DatasetReader.__get_product_code(soup),
-                        InflationJSONA101DatasetReader.__get_product_brand(
-                            soup
-                        ),
-                        InflationJSONA101DatasetReader.__get_product_price(
-                            soup
-                        ),
-                        InflationJSONA101DatasetReader.__get_currency(soup),
-                        InflationJSONA101DatasetReader.__item_in_stock(soup),
-                        date,
-                    )
-                    records.append(record)
-        logger.info(f"total_pages={total_pages}, item_pages={item_pages}")
-        return InflationDataset(records)
-
 
 def run():
-    reader = InflationJSONA101DatasetReader()
-    dataset = reader.read("a101.med.json.gz")
+    reader = A101Parser()
+    dataset = reader.parse("a101.med.json.gz")
+    # parsers = {"a101": A101Parser(), "migros": NotImplementedError}
     print(dataset)
 
 

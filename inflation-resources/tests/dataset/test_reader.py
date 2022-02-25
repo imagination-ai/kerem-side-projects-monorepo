@@ -5,7 +5,7 @@ import tempfile
 import os
 
 from inflation.dataset.reader import (
-    InflationJSONA101DatasetReader,
+    A101Parser,
     InflationDataRecord,
 )
 from inflation.dataset.crawl import ItemRecord
@@ -42,12 +42,12 @@ RECORDS_RND = {
 
 @pytest.fixture(scope="function")
 def inflation_data_reader():
-    return InflationJSONA101DatasetReader()
+    return A101Parser()
 
 
 @pytest.fixture(scope="module")
 def a101_test_dataset():
-    return InflationJSONA101DatasetReader().read(
+    return A101Parser().parse(
         INFLATION_RESOURCES_PATH / TEST_FILE_PATHS["a101"]
     )
 
@@ -55,7 +55,7 @@ def a101_test_dataset():
 def test_read_product(
     inflation_data_reader,
 ):
-    record_data = inflation_data_reader.read(
+    record_data = inflation_data_reader.parse(
         INFLATION_RESOURCES_PATH / TEST_FILE_PATHS["a101"]
     )
     truths = [
