@@ -19,5 +19,7 @@ cdx_toolkit
 lxml
 pandas
 openpyxl
+google
+google-cloud-storage
 
 urllib3

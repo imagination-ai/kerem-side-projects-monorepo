@@ -87,5 +87,5 @@ EXPOSE 8000
 
 ENV PATH=/applications:$PATH
 
-#COPY entrypoints/inflation-app-entrypoint.sh /applications/inflation-app-entrypoint.sh
-ENTRYPOINT ["sleep", "3600"]
+COPY entrypoints/inflation-app-entrypoint.sh /applications/inflation-app-entrypoint.sh
+ENTRYPOINT ["sh", "/applications/inflation-app-entrypoint.sh"]

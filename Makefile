@@ -24,7 +24,7 @@ install-test: install
 #	python -m inflation.dataset_download --url "a101.com.tr/*" --output-fn $@ --type json --limit 50000
 
 crawl:
-	python -m inflation.dataset.start_crawling --excel-path inflation-resources/data/links.xlsx --path inflation-resources/data/inflation
+	$(RUN) python -m inflation.dataset.crawl --excel-path inflation-resources/data/links.xlsx --path inflation-resources/
 #inflation/dataset/%.json.gz:
 #	python -m inflation.dataset_download --url ${URL} --output-fn $@ --type json --limit 1 # Update limit in the long run
 
