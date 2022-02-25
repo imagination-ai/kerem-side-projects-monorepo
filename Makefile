@@ -11,6 +11,9 @@ install: .venv requirements.txt
 	$(RUN) pip install -r requirements.txt
 
 install-dev: install-test
+	wget https://chromedriver.storage.googleapis.com/98.0.4758.102/chromedriver_mac64.zip
+	unzip chromedriver_mac64.zip
+	mv chromedriver /usr/local/bin/chromedriver
 	$(RUN) pip install -r requirements-dev.txt
 	$(RUN) pre-commit install && pre-commit install -t pre-push
 
@@ -34,3 +37,6 @@ test:
 
 kerem-%: .gitignore
 	echo $@ $* $<
+
+format:
+	 $(RUN) black -t py39 -l 80 $$(find inflation* style* common* -name "*.py")

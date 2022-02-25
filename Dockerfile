@@ -1,15 +1,8 @@
-FROM python:3.9-slim-bullseye as base
+FROM ghcr.io/imagination-ai/base-python:latest as base
 
-RUN apt-get update -y && \
-    apt-get install -y \
-       libblas-dev \
-       liblapack-dev \
-       libpng-dev \
-       locales \
-       libssl-dev \
-       libffi-dev \
-       libfreetype6-dev \
-       vim
+#RUN apt-get update -y && \
+    #apt-get install -y \
+       #libblas-dev
 
 RUN mkdir -p /build/tests
 RUN mkdir /applications
@@ -72,7 +65,6 @@ FROM base as inflation
 COPY inflation /build/inflation
 COPY inflation-resources/tests /build/tests
 COPY inflation-resources/data /build/data
-COPY inflation-resources/chromedriver /applications
 
 RUN \
     if [ "$skip_tests" = "" ] ; then \
@@ -95,5 +87,5 @@ EXPOSE 8000
 
 ENV PATH=/applications:$PATH
 
-COPY entrypoints/inflation-app-entrypoint.sh /applications/inflation-app-entrypoint.sh
-ENTRYPOINT ["sh", "/applications/inflation-app-entrypoint.sh"]
+#COPY entrypoints/inflation-app-entrypoint.sh /applications/inflation-app-entrypoint.sh
+ENTRYPOINT ["sleep", "3600"]

@@ -7,6 +7,7 @@ from typing import List
 
 from selenium import webdriver
 from selenium.webdriver.common.by import By
+from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import NoSuchElementException
@@ -40,7 +41,7 @@ class PageCrawlerRobot:
         options.add_argument("--disable-dev-shm-usage")
         options.add_argument("--user-data-dir=chrome-data")
         self.driver = webdriver.Chrome(
-            executable_path=executable_path, options=options
+            service=Service(executable_path), options=options
         )
         self.wait = WebDriverWait(self.driver, 5)
 
