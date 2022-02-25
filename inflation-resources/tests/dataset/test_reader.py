@@ -52,6 +52,7 @@ def a101_test_dataset():
     )
 
 
+@pytest.mark.xfail
 def test_read_product(
     inflation_data_reader,
 ):
