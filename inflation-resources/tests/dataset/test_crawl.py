@@ -8,7 +8,7 @@ from unittest import mock
 from pathlib import Path
 from inflation.dataset.crawl import CrawlerManager
 from inflation.dataset.crawl import ItemRecord
-from inflation.dataset.reader import InflationJSONA101DatasetReader
+from inflation.dataset.reader import A101Parser
 from inflation.dataset.crawl import A101Crawler
 from inflation.dataset.crawl import MigrosCrawler
 
@@ -33,7 +33,7 @@ RECORDS = {
 
 @pytest.fixture(scope="module")
 def inflation_data_reader():
-    return InflationJSONA101DatasetReader()
+    return A101Parser()
 
 
 @pytest.fixture(scope="module")

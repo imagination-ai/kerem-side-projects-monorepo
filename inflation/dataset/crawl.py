@@ -115,7 +115,7 @@ class Crawler:
         """
         Args:
             record (ItemRecord):
-        Returns:
+        Returns (dict):
 
         """
 
@@ -149,16 +149,18 @@ class CrawlerManager:
 
     @staticmethod
     def parse_excel_to_link_dataset(file_path):
-        """It takes excel file path convert them into list of TurkstatItemRecord class
-        and save it into a list.
+        """
+        The function first reads the spreadsheet file containing item codes, names (COICOP),
+        and related products with their links, then parse the source information (e.g., Migros, A101, etc.)
+        and save the product's information as ItemRecord. It returns a list of ItemRecords.
 
-        Note: Only works with the first sheet of an Excel file.
 
         Args:
-            file_path: File path of the Excel file that includes the products
-            information and their links/
+            file_path (str): An Excel file path or  a Google SpreadSheet URL.
 
-        Returns: List of TurkstatItemRecord
+        Returns (list): List of ItemRecords.
+
+        Note: Only works with the first sheet of a spreadsheet file.
 
         """
         file_path = CrawlerManager.format_spreadsheet_path(file_path)
