@@ -5,18 +5,17 @@ import logging
 import os
 from typing import List
 
-from selenium import webdriver
-from selenium.webdriver.common.by import By
-from selenium.webdriver.chrome.service import Service
-from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.support import expected_conditions as EC
-from selenium.common.exceptions import NoSuchElementException
 from bs4 import BeautifulSoup
 import pandas as pd
 import requests
+from selenium import webdriver
+from selenium.common.exceptions import NoSuchElementException
+from selenium.webdriver.chrome.service import Service
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.support.ui import WebDriverWait
 
 from common.customized_logging import configure_logging
-
 
 configure_logging()
 logger = logging.getLogger(__name__)
@@ -67,9 +66,12 @@ class Crawler:
     @staticmethod
     def parse_excel_to_link_dataset(file_path) -> List[ItemRecord]:
         """
-        The function first reads the spreadsheet file containing item codes, names (COICOP),
-        and related products with their links, then parse the source information (e.g., Migros, A101, etc.)
-        and save the product's information as ItemRecord. It returns a list of ItemRecords.
+        The function first reads the spreadsheet file containing item codes,
+        names (COICOP),
+        and related products with their links, then parse the source information (
+        e.g., Migros, A101, etc.)
+        and save the product's information as ItemRecord. It returns a list of
+        ItemRecords.
 
 
         Args:
@@ -222,7 +224,8 @@ class CrawlerManager:
                 total_saved += 1
 
             logger.info(
-                f"Total of {total_saved}/{len(records)} records are saved to {output_fn_full_path}"
+                f"Total of {total_saved}/{len(records)} records are saved to "
+                f"{output_fn_full_path}"
             )
 
         return output_fn_full_path

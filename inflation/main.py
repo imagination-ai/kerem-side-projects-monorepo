@@ -3,12 +3,12 @@ import os
 
 from fastapi import BackgroundTasks, FastAPI
 
+from common.clients.google_storage_client import GoogleStorageClient
 from common.customized_logging import configure_logging
 from inflation.config import settings
-from inflation.dataset.crawl import CrawlerManager, A101Crawler, MigrosCrawler
-from common.clients.google_storage_client import GoogleStorageClient
+from inflation.dataset.crawl import A101Crawler, CrawlerManager, MigrosCrawler
 
-BUCKET_NAME = os.getenv("INFLATION_BUCKET", "inflation-in-turkey")
+BUCKET_NAME = os.getenv("GCS_BUCKET", "inflation-in-turkey")
 
 CRAWLERS = {"a101": A101Crawler(), "migros": MigrosCrawler()}
 
@@ -21,7 +21,9 @@ storage_client = GoogleStorageClient(bucket_name=BUCKET_NAME)
 
 OUTPUT_PATH = "/applications/downloaded-files/"
 
-logger.info(f"Crawlers:{CRAWLERS}, Bucket Name:{BUCKET_NAME}")
+logger.info(
+    f"Starting the application with -- Crawlers:{CRAWLERS}, Bucket Name:{BUCKET_NAME}"
+)
 
 
 def fetch_inflation_data(excel_path, output_path):
@@ -40,9 +42,12 @@ def fetch_inflation_data(excel_path, output_path):
     )
     records = cm.parse_excel_to_link_dataset(excel_path)
     inflation_fn = cm.start_crawling(records, output_path)
-    storage_client.upload(inflation_fn, os.path.basename(inflation_fn))
+    basename = os.path.basename(inflation_fn)
 
-    logger.info(f"Crawling done for {excel_path}: {inflation_fn}")
+    logger.info(f"Uploading {inflation_fn} to {BUCKET_NAME}/{basename}")
+
+    storage_client.upload(inflation_fn, basename)
+    logger.info(f"Crawling done for {excel_path}: {BUCKET_NAME}/{basename}")
 
 
 def collect_db_stats(db_path):
@@ -72,9 +77,9 @@ async def index():
 @app.get("/Crawl", tags=["Crawl"])
 async def fetch_data(
     background_tasks: BackgroundTasks,
-    excel_path="https://docs.google.com/spreadsheets/d/1mZSqW_X_KuQQdGhH7oAn3"
-    "-MATyfePLlYYmOgE-mB_9Q/edit#gid=0",
+    excel_path="https://docs.google.com/spreadsheets/d/1Xv5UOTpzDPELdtk8JW1oDWbjpsEexAKKLzgzZBB-2vw/edit#gid=0",
 ):
+
     background_tasks.add_task(fetch_inflation_data, excel_path, OUTPUT_PATH)
     return {"success": True, "message": "The data fetching started."}
 
@@ -92,7 +97,7 @@ if __name__ == "__main__":
         "inflation.main:app",
         host=settings.APP_HOST,
         port=settings.APP_PORT,
-        # reload=True,
+        reload=True,
         # reload_dirs='/tmp/',
         debug=True,
         workers=1,

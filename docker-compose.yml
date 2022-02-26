@@ -35,6 +35,11 @@ services:
     networks:
       - backend
     restart: "no"
+    environment:
+      - STORAGE_EMULATOR_HOST=http://mock-cloud-storage:4443
+      - GCS_BUCKET=test-bucket
+    depends_on:
+      - mock-cloud-storage
     entrypoint: ["python", "/applications/inflation/main.py"]
     deploy:
       replicas: 1
@@ -60,6 +65,15 @@ services:
       restart_policy:
         condition: on-failure
 
+  mock-cloud-storage:
+    image: fsouza/fake-gcs-server
+    networks:
+      - backend
+    ports:
+      - "4443:4443"
+    volumes:
+      - ./fake-gcs:/data  # bucket
+    command: "-scheme=http"
   # (TODO: osman) Uncomment when we need it.
   #localstack:
     #image: localstack/localstack:0.11.1

@@ -2,6 +2,7 @@
 
 ENV ?= .venv
 RUN = . $(ENV)/bin/activate &&
+GCS_BUCKET = test-bucket
 
 .venv:
 	virtualenv $(ENV) --python=python3.8
@@ -14,6 +15,11 @@ install-dev: install-test
 	wget https://chromedriver.storage.googleapis.com/98.0.4758.102/chromedriver_mac64.zip
 	unzip chromedriver_mac64.zip
 	mv chromedriver /usr/local/bin/chromedriver
+
+	# prep for fake gcs
+	mkdir -p fake-gcs/$(GCS_BUCKET)
+	touch fake-gcs/$(GCS_BUCKET)/fake-data.txt
+
 	$(RUN) pip install -r requirements-dev.txt
 	$(RUN) pre-commit install && pre-commit install -t pre-push
 
@@ -34,9 +40,6 @@ clean:
 test:
 	APP_RESOURCE_DIR='style-resources' PYTHONPATH=$(PWD) pytest style-resources/tests
 	PYTHONPATH=$(PWD) pytest inflation-resources/tests
-
-kerem-%: .gitignore
-	echo $@ $* $<
 
 format:
 	 $(RUN) black -t py39 -l 80 $$(find inflation* style* common* -name "*.py")
