@@ -76,8 +76,8 @@ async def index():
     return {"success": True, "message": "Inflation Downloader is working!"}
 
 
-@app.get("/Crawl", tags=["Crawl"])
-async def fetch_data(
+@app.get("/CrawlAsync", tags=["Crawl"])
+async def fetch_data_async(
     background_tasks: BackgroundTasks,
     excel_path="https://docs.google.com/spreadsheets/d"
     "/1Xv5UOTpzDPELdtk8JW1oDWbjpsEexAKKLzgzZBB-2vw/edit#gid=0",
@@ -86,6 +86,19 @@ async def fetch_data(
     background_tasks.add_task(
         fetch_inflation_data, excel_path, OUTPUT_PATH, filename
     )
+    return {
+        "success": True,
+        "message": f"{BUCKET_NAME}/{filename} is preparing.",
+    }
+
+
+@app.get("/Crawl", tags=["Crawl"])
+async def fetch_data(
+    excel_path="https://docs.google.com/spreadsheets/d"
+    "/1Xv5UOTpzDPELdtk8JW1oDWbjpsEexAKKLzgzZBB-2vw/edit#gid=0",
+):
+    filename = f"{datetime.now().strftime('%Y-%m-%d')}.crawl.jsonl"
+    fetch_inflation_data(excel_path, OUTPUT_PATH, filename)
     return {
         "success": True,
         "message": f"{BUCKET_NAME}/{filename} is preparing.",
