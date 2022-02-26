@@ -206,12 +206,12 @@ class CrawlerManager:
         return path
 
     def start_crawling(
-        self, records: List[ItemRecord], path="/", output_fn="inflation-crawl"
+        self,
+        records: List[ItemRecord],
+        path="/",
+        output_fn="inflation-crawl.jsonl",
     ):
-        date_stamp_output_file = datetime.now().strftime("%Y%m%d%H%M%S")
-        output_fn_full_path = os.path.join(
-            path, f"{output_fn}-{date_stamp_output_file}.jsonl"
-        )
+        output_fn_full_path = os.path.join(path, output_fn)
         total_saved = 0
 
         with open(output_fn_full_path, "w") as file:
