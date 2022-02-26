@@ -1,3 +1,4 @@
+from datetime import datetime
 import logging
 import os
 
@@ -26,7 +27,7 @@ logger.info(
 )
 
 
-def fetch_inflation_data(excel_path, output_path):
+def fetch_inflation_data(excel_path, output_path, filename):
     """
 
     Args:
@@ -38,10 +39,11 @@ def fetch_inflation_data(excel_path, output_path):
 
     """
     logger.info(
-        f"Crawling started with {excel_path} and output_path is {output_path}"
+        f"Crawling started with {excel_path} and output_path is {output_path} and "
+        f"filename is {filename}"
     )
     records = cm.parse_excel_to_link_dataset(excel_path)
-    inflation_fn = cm.start_crawling(records, output_path)
+    inflation_fn = cm.start_crawling(records, output_path, filename)
     basename = os.path.basename(inflation_fn)
 
     logger.info(f"Uploading {inflation_fn} to {BUCKET_NAME}/{basename}")
@@ -77,11 +79,17 @@ async def index():
 @app.get("/Crawl", tags=["Crawl"])
 async def fetch_data(
     background_tasks: BackgroundTasks,
-    excel_path="https://docs.google.com/spreadsheets/d/1Xv5UOTpzDPELdtk8JW1oDWbjpsEexAKKLzgzZBB-2vw/edit#gid=0",
+    excel_path="https://docs.google.com/spreadsheets/d"
+    "/1Xv5UOTpzDPELdtk8JW1oDWbjpsEexAKKLzgzZBB-2vw/edit#gid=0",
 ):
-
-    background_tasks.add_task(fetch_inflation_data, excel_path, OUTPUT_PATH)
-    return {"success": True, "message": "The data fetching started."}
+    filename = f"{datetime.now().strftime('%Y-%m-%d')}.crawl.jsonl"
+    background_tasks.add_task(
+        fetch_inflation_data, excel_path, OUTPUT_PATH, filename
+    )
+    return {
+        "success": True,
+        "message": f"{BUCKET_NAME}/{filename} is preparing.",
+    }
 
 
 @app.get("/Stats", tags=["Stats"])

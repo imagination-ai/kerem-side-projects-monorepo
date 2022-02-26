@@ -60,6 +60,8 @@ services:
     networks:
       - backend
     restart: "no"
+    depends_on:
+      - style
     deploy:
       replicas: 1
       restart_policy:
