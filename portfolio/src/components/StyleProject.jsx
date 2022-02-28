@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import { useParams } from 'react-router-dom'
-import StyleClient from '../style/style_client'
+import StyleClient from '../client/style_client'
 import Form from 'react-bootstrap/Form'
 import 'bootstrap/dist/css/bootstrap.min.css'
 import Button from 'react-bootstrap/Button'
@@ -8,33 +8,32 @@ import Table from 'react-bootstrap/Table'
 
 const client = new StyleClient(
   process.env.REACT_APP_STYLE_HOST || 'localhost',
-  process.env.REACT_APP_STYLE_PORT || '8080'
+  process.env.REACT_APP_STYLE_PORT || '8080',
 )
-
 
 // export function getProject (index) {
 //   return projects[index]
 // }
 
-export default function StyleProject (props) {
+export default function StyleProject(props) {
   let params = useParams()
   // let project = getProject(parseInt(params.projectId, 10))
 
   const [predictions, setPredictions] = useState({})
   const [inputField, setInputField] = useState({
     text: '',
-    model_name: 'mock'
+    model_name: 'mock',
   })
 
-  const inputsHandler = e => {
+  const inputsHandler = (e) => {
     const { name, value } = e.target
-    setInputField(prevState => ({
+    setInputField((prevState) => ({
       ...prevState,
-      [name]: value
+      [name]: value,
     }))
   }
 
-  const predictionToTable = prediction => {
+  const predictionToTable = (prediction) => {
     return (
       <tbody>
         {Object.entries(predictions).map(([key, value]) => {
@@ -95,35 +94,35 @@ export default function StyleProject (props) {
       <br></br>
 
       <Form>
-        <Form.Group className='mb-3' controlId='formBasicEmail'>
+        <Form.Group className="mb-3" controlId="formBasicEmail">
           <Form.Label>
             Jot down or copy some text. We can tell you wrote this!
           </Form.Label>
           <Form.Control
             // type='email'
-            name='text'
+            name="text"
             value={inputField.text}
             onChange={inputsHandler}
-            placeholder='It was the best of times, it was the worst of times...'
+            placeholder="It was the best of times, it was the worst of times..."
           />
-          <Form.Text className='text-muted'>
+          <Form.Text className="text-muted">
             Copy or write some snippet to figure out who would be the author...
           </Form.Text>
         </Form.Group>
 
-        <Form.Group className='mb-3' controlId='formBasicPassword'>
+        <Form.Group className="mb-3" controlId="formBasicPassword">
           <Form.Select
-            aria-label='Default select example'
-            name='model_name'
+            aria-label="Default select example"
+            name="model_name"
             value={inputField.model_name}
             onChange={inputsHandler}
           >
-            <option value='small'>small-model</option>
-            <option value='mock'>mock-model</option>
+            <option value="small">small-model</option>
+            <option value="mock">mock-model</option>
           </Form.Select>
         </Form.Group>
 
-        <Button variant='primary' onClick={handlePredictions}>
+        <Button variant="primary" onClick={handlePredictions}>
           Submit
         </Button>
       </Form>

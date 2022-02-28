@@ -15,7 +15,6 @@ class GoogleStorageClient:
         self.bucket = self.client.bucket(self.bucket_name)
 
     def upload(self, source_file_full_path, destination_filename):
-        logger.info(f"{source_file_full_path}, {destination_filename}")
         blob = self.bucket.blob(destination_filename)
         blob.upload_from_filename(source_file_full_path)
 

@@ -1,4 +1,5 @@
-import React, { Component } from 'react'
+import FacebookIcon from '@mui/icons-material/Facebook'
+import * as React from 'react'
 import AppBar from '@mui/material/AppBar'
 import Box from '@mui/material/Box'
 import Toolbar from '@mui/material/Toolbar'
@@ -7,23 +8,21 @@ import Typography from '@mui/material/Typography'
 import Menu from '@mui/material/Menu'
 import MenuIcon from '@mui/icons-material/Menu'
 import Container from '@mui/material/Container'
-import Avatar from '@mui/material/Avatar'
 import Button from '@mui/material/Button'
-import Tooltip from '@mui/material/Tooltip'
 import MenuItem from '@mui/material/MenuItem'
-import { Link, Outlet } from 'react-router-dom'
+import TwitterIcon from '@mui/icons-material/Twitter'
+import GitHubIcon from '@mui/icons-material/GitHub'
 
-const pages = ['projects', 'about']
-const settings = ['Profile', 'Account', 'Dashboard', 'Logout']
+const pages = ['Projects']
 
 const ResponsiveAppBar = () => {
   const [anchorElNav, setAnchorElNav] = React.useState(null)
   const [anchorElUser, setAnchorElUser] = React.useState(null)
 
-  const handleOpenNavMenu = event => {
+  const handleOpenNavMenu = (event) => {
     setAnchorElNav(event.currentTarget)
   }
-  const handleOpenUserMenu = event => {
+  const handleOpenUserMenu = (event) => {
     setAnchorElUser(event.currentTarget)
   }
 
@@ -36,108 +35,90 @@ const ResponsiveAppBar = () => {
   }
 
   return (
-    <AppBar position='static'>
-      <Container maxWidth='xl'>
+    <AppBar position="static">
+      <Container maxWidth="xl">
         <Toolbar disableGutters>
           <Typography
-            variant='h6'
+            variant="h6"
             noWrap
-            component='div'
+            component="div"
             sx={{ mr: 2, display: { xs: 'none', md: 'flex' } }}
           >
-            Blog
+            Kerem - Blog
           </Typography>
 
-          <Box sx={{ flexGrow: 2, display: { xs: 'flex', md: 'none' } }}>
+          <Box
+            sx={{
+              flexGrow: 1,
+              display: { xs: 'flex', md: 'none' },
+            }}
+          >
             <IconButton
-              size='large'
-              aria-label='account of current user'
-              aria-controls='menu-appbar'
-              aria-haspopup='true'
+              size="large"
+              aria-label="account of current user"
+              aria-controls="menu-appbar"
+              aria-haspopup="true"
               onClick={handleOpenNavMenu}
-              color='inherit'
+              color="inherit"
             >
               <MenuIcon />
             </IconButton>
             <Menu
-              id='menu-appbar'
+              id="menu-appbar"
               anchorEl={anchorElNav}
               anchorOrigin={{
                 vertical: 'bottom',
-                horizontal: 'left'
+                horizontal: 'left',
               }}
               keepMounted
               transformOrigin={{
                 vertical: 'top',
-                horizontal: 'left'
+                horizontal: 'left',
               }}
               open={Boolean(anchorElNav)}
               onClose={handleCloseNavMenu}
               sx={{
-                display: { xs: 'block', md: 'none' }
+                display: { xs: 'block', md: 'none' },
               }}
             >
-              {pages.map(page => (
+              {pages.map((page) => (
                 <MenuItem key={page} onClick={handleCloseNavMenu}>
-                  <Typography textAlign='center'>{page}</Typography>
+                  <Typography textAlign="center">{page}</Typography>
                 </MenuItem>
               ))}
             </Menu>
           </Box>
           <Typography
-            variant='h6'
+            variant="h6"
             noWrap
-            component='div'
+            component="div"
             sx={{ flexGrow: 1, display: { xs: 'flex', md: 'none' } }}
           >
             Blog
           </Typography>
-          <Box sx={{ flexGrow: 1, display: { xs: 'none', md: 'flex' } }}>
-            {pages.map(page => (
-              <Link
-                style={{ display: 'inline', isActive: "false" }}
-                to={page}
+          <Box
+            // justifyContent="center"
+            sx={{
+              flexGrow: 1,
+              display: { xs: 'none', md: 'flex' },
+              justifyContent: 'center',
+            }}
+          >
+            {pages.map((page) => (
+              <Button
                 key={page}
+                onClick={handleCloseNavMenu}
+                sx={{ my: 2, color: 'white', display: 'block' }}
               >
-                <Button
-                  key={page}
-                  onClick={handleCloseNavMenu}
-                  sx={{ my: 2, color: 'white', display: 'block' }}
-                >
-                  {page}
-                </Button>
-              </Link>
+                {page}
+              </Button>
             ))}
           </Box>
-          <Box sx={{ flexGrow: 0 }}>
-            <Tooltip title='Open settings'>
-              <IconButton onClick={handleOpenUserMenu} sx={{ p: 0 }}>
-                <Avatar alt='Kerem Baskaya' src='/static/images/kerem.jpeg' sx={{ width: 56, height: 56 }}/>
-              </IconButton>
-            </Tooltip>
 
-            <Menu
-              sx={{ mt: '45px' }}
-              id='menu-appbar'
-              anchorEl={anchorElUser}
-              anchorOrigin={{
-                vertical: 'top',
-                horizontal: 'right'
-              }}
-              keepMounted
-              transformOrigin={{
-                vertical: 'top',
-                horizontal: 'right'
-              }}
-              open={Boolean(anchorElUser)}
-              onClose={handleCloseUserMenu}
-            >
-              {settings.map(setting => (
-                <MenuItem key={setting} onClick={handleCloseUserMenu}>
-                  <Typography textAlign='center'>{setting}</Typography>
-                </MenuItem>
-              ))}
-            </Menu>
+          <Box sx={{ flexGrow: 0 }}>
+            <FacebookIcon></FacebookIcon>
+            <TwitterIcon></TwitterIcon>
+            <GitHubIcon></GitHubIcon>
           </Box>
         </Toolbar>
       </Container>
