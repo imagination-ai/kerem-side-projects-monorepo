@@ -9,6 +9,8 @@ import Menu from '@mui/material/Menu'
 import MenuIcon from '@mui/icons-material/Menu'
 import Container from '@mui/material/Container'
 import Button from '@mui/material/Button'
+import Link from '@mui/material/Link'
+
 import MenuItem from '@mui/material/MenuItem'
 import TwitterIcon from '@mui/icons-material/Twitter'
 import GitHubIcon from '@mui/icons-material/GitHub'
@@ -35,9 +37,9 @@ const ResponsiveAppBar = () => {
   }
 
   return (
-    <AppBar position="static">
+    <AppBar position="sticky">
       <Container maxWidth="xl">
-        <Toolbar disableGutters>
+        <Toolbar disableGutters sx={{ justifyContent: 'space-between' }}>
           <Typography
             variant="h6"
             noWrap
@@ -81,11 +83,11 @@ const ResponsiveAppBar = () => {
                 display: { xs: 'block', md: 'none' },
               }}
             >
-              {pages.map((page) => (
-                <MenuItem key={page} onClick={handleCloseNavMenu}>
-                  <Typography textAlign="center">{page}</Typography>
-                </MenuItem>
-              ))}
+              <MenuItem key={0} onClick={handleCloseNavMenu}>
+                <Link to="/projects">
+                  <Typography textAlign="center">Projects</Typography>
+                </Link>
+              </MenuItem>
             </Menu>
           </Box>
           <Typography
@@ -97,11 +99,10 @@ const ResponsiveAppBar = () => {
             Blog
           </Typography>
           <Box
-            // justifyContent="center"
             sx={{
-              flexGrow: 1,
+              // flexGrow: 1,
               display: { xs: 'none', md: 'flex' },
-              justifyContent: 'center',
+              // justifyContent: 'center',
             }}
           >
             {pages.map((page) => (
@@ -116,9 +117,23 @@ const ResponsiveAppBar = () => {
           </Box>
 
           <Box sx={{ flexGrow: 0 }}>
-            <FacebookIcon></FacebookIcon>
-            <TwitterIcon></TwitterIcon>
-            <GitHubIcon></GitHubIcon>
+            {/* <Link href="http://www.github.com/kerembaskaya">
+              <GitHubIcon to="asdfasdfasd"></GitHubIcon>
+            </Link> */}
+
+            <GitHubIcon
+              onClick={(event) =>
+                (window.location.href = 'http://www.github.com/kerembaskaya')
+              }
+              sx={{ cursor: 'pointer', marginRight: '8px' }}
+            />
+
+            <TwitterIcon
+              onClick={(event) =>
+                (window.location.href = 'http://www.twitter.com/kerembaskaya')
+              }
+              sx={{ cursor: 'pointer' }}
+            />
           </Box>
         </Toolbar>
       </Container>

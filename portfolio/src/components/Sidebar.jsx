@@ -9,8 +9,8 @@ import InterestList from './InterestList'
 
 export default function Sidebar() {
   return (
-    <Box marginTop="190px">
-      <Card sx={{ maxWidth: 345 }}>
+    <Box>
+      <Card>
         <CardActionArea>
           <CardMedia
             component="img"
