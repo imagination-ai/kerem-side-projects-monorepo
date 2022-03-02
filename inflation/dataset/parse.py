@@ -1,22 +1,16 @@
-import gzip
 import json
 import datetime
 import logging
 import _pickle as cPickle
 import pandas as pd
+import gzip
 
 from dataclasses import dataclass
 from pathlib import Path
 from bs4 import BeautifulSoup
-from selenium import webdriver
-from selenium.webdriver.common.by import By
-from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.support import expected_conditions as EC
 
 from common.customized_logging import configure_logging
-from common.utils.mathematical_conversation_utils import (
-    convert_price_to_us,
-)
+from common.utils.mathematical_conversation_utils import convert_price_to_us
 
 SAVED_DATASETS_DIR_PATH = (
     Path(__file__).parents[2] / "inflation-resources/data/"
@@ -100,7 +94,7 @@ class InflationDatasetIterator:
 
 
 class ParserManager:
-    def __init__self(self, parsers: dict):
+    def __init__(self, parsers: dict):
         self.parsers = parsers
 
     def start_parsing_from_google_storage(
@@ -113,7 +107,8 @@ class ParserManager:
 
         Args:
             data_file_path (str): The data file path in the Google Storage.
-            destination_file_path (str): The destination file path for saving the file.
+            destination_file_path (str): The destination file path for saving the file (gzip
+            or json file format).
 
         Returns:
 
@@ -127,46 +122,78 @@ class ParserManager:
     def _start_parsing(self, data_file_path: str):
         records = []
 
-        with open(data_file_path, "rt", encoding="UTF-8") as file:
+        with ParserManager.open(data_file_path, mode="rt") as file:
             total_pages = 0
             item_pages = 0
             for line in file:
                 line = json.loads(line)
                 total_pages += 1
-                records.append(self.parsers[line["source"].lower()])
+
+                records.append(self.parsers[line["source"].lower()].parse(line))
+
                 item_pages += 1
         logger.info(f"total_pages={total_pages}, item_pages={item_pages}")
 
         return InflationDataset(records)
 
+    @staticmethod
+    def open(data_file_path: str, mode: str):
+        """
+        It takes the data file path
+        Args:
+            mode:
+            data_file_path (str):
+
+        Returns (str):
+
+        """
+
+        func = None
+        if data_file_path.endswith(".gz"):
+            func = gzip.open
+        elif data_file_path.endswith(".json") or data_file_path.endswith(
+            ".jsonl"
+        ):
+            func = open
+        else:
+            TypeError("You should give json or gzip file format as an input.")
+
+        return func(data_file_path, mode, encoding="UTF-8")
+
 
 class Parser:
     @staticmethod
-    def __convert_sample_date(date: str):
+    def _convert_sample_date(date: str):
         return datetime.datetime.strptime(date, "%Y%m%d%H%M%S")
 
-    def __get_product_name(self, soup):
+    def _get_product_name(self, soup):
         NotImplemented
 
-    def __get_product_url(self, soup):
+    def _get_product_url(self, soup):
         NotImplemented
 
-    def __get_product_code(self, soup):
+    def _get_product_code(self, soup):
         NotImplemented
 
-    def __get_product_brand(self, soup):
+    def _get_product_brand(self, soup):
         NotImplemented
 
-    def __get_product_price(self, soup):
+    def _get_product_price(self, soup):
         NotImplemented
 
-    def __get_currency(self, soup):
+    def _get_currency(self, soup):
         NotImplemented
 
-    def __item_in_stock(self, soup):
+    def _item_in_stock(self, soup):
         NotImplemented
 
-    def __is_product_page(self, soup):
+    def _is_product_page(self, soup):
+        NotImplemented
+
+    def _get_soup(self, soup):
+        """This function aids different parses' method (e.g., MigrosParser._get_product_name) as providing
+        true soup object."""
+
         NotImplemented
 
     def parse(self, line) -> InflationDataRecord:
@@ -185,21 +212,21 @@ class Parser:
             line["item_name"],
             line["source"],
         )
-        date = Parser.__convert_sample_date(line["timestamp"])
-        soup = BeautifulSoup(line["text"], "lxml")
-        if self.__is_product_page(soup):
+        date = Parser._convert_sample_date(line["timestamp"])
+        soup = self._get_soup(BeautifulSoup(line["text"], "lxml"))
 
+        if self._is_product_page(soup):
             record = InflationDataRecord(
                 item_code,
                 item_name,
                 source,
-                self.__get_product_name(soup),
-                self.__get_product_url(soup),
-                self.__get_product_code(soup),
-                self.__get_product_brand(soup),
-                self.__get_product_price(soup),
-                self.__get_currency(soup),
-                self.__item_in_stock(soup),
+                self._get_product_name(soup),
+                self._get_product_url(soup),
+                self._get_product_code(soup),
+                self._get_product_brand(soup),
+                self._get_product_price(soup),
+                self._get_currency(soup),
+                self._item_in_stock(soup),
                 date,
             )
 
@@ -211,14 +238,14 @@ class A101Parser(Parser):
     ITEM_NOT_IN_STOCK = "out of stock"
 
     @staticmethod
-    def __get_product_name(soup):
+    def _get_product_name(soup):
         try:
             return soup.find("meta", property="og:title").attrs["content"]
         except AttributeError:
             return NOT_AVAILABLE
 
     @staticmethod
-    def __get_product_url(soup):
+    def _get_product_url(soup):
         try:
             return soup.find("meta", property="og:url")["content"]
         except AttributeError as e:
@@ -228,7 +255,7 @@ class A101Parser(Parser):
             # return NOT_AVAILABLE
 
     @staticmethod
-    def __get_product_code(soup):
+    def _get_product_code(soup):
         try:
             return (
                 soup.find("div", {"class": "product-code"})
@@ -239,26 +266,26 @@ class A101Parser(Parser):
             return NOT_AVAILABLE
 
     @staticmethod
-    def __get_product_brand(soup):
+    def _get_product_brand(soup):
         try:
             return soup.find("meta", property="og:brand").attrs["content"]
         except AttributeError:
             return NOT_AVAILABLE
 
     @staticmethod
-    def __get_product_price(soup):
+    def _get_product_price(soup):
         return float(
             soup.find("meta", property="product:price:amount").attrs["content"]
         )
 
     @staticmethod
-    def __get_currency(soup):
+    def _get_currency(soup):
         return soup.find("meta", property="product:price:currency").attrs[
             "content"
         ]
 
     @staticmethod
-    def __item_in_stock(soup):
+    def _item_in_stock(soup):
         availability = (
             soup.find("meta", property="product:availability")
             .attrs["content"]
@@ -273,11 +300,11 @@ class A101Parser(Parser):
             raise TypeError
 
     @staticmethod
-    def __convert_sample_date(date: str):
+    def _convert_sample_date(date: str):
         return datetime.datetime.strptime(date, "%Y%m%d%H%M%S")
 
     @staticmethod
-    def __is_product_page(soup):
+    def _is_product_page(soup):
         return all(
             [
                 soup.find("meta", property="og:url"),
@@ -285,12 +312,71 @@ class A101Parser(Parser):
             ]
         )
 
+    @staticmethod
+    def _get_soup(soup):
+        return soup
+
+
+class MigrosParser(Parser):
+    ITEM_IN_STOCK = "InStock"
+    ITEM_NOT_IN_STOCK = (
+        "OutStock"  # TODO: Need to check. It's only a guess right now.
+    )
+
+    @staticmethod
+    def _get_product_name(soup):
+        return soup["name"]
+
+    @staticmethod
+    def _get_product_url(soup):
+        return soup["url"]
+
+    @staticmethod
+    def _get_product_code(soup):
+        return soup["image"][0]["contentUrl"].split("/")[-2]
+
+    @staticmethod
+    def _get_product_brand(soup):
+        return soup["brand"]["name"]
+
+    @staticmethod
+    def _get_currency(soup):
+        return soup["offers"]["priceCurrency"]
+
+    @staticmethod
+    def _get_product_price(soup):
+        return convert_price_to_us(soup["offers"]["price"])
+
+    @staticmethod
+    def _item_in_stock(soup):
+        availability = soup["offers"]["availability"].split("/")[-1]
+        if availability == MigrosParser.ITEM_IN_STOCK:
+            return True
+        elif availability == MigrosParser.ITEM_NOT_IN_STOCK:
+            pass  # After checking true definition (item_not_in) I'll delete the pass
+            return False
+        else:
+            print(soup["offers"]["availability"])
+            raise TypeError
+
+    @staticmethod
+    def _get_soup(soup):
+        soup = soup.find("script", type="application/json+ld")
+        page_json = json.loads(
+            soup.string
+        )  # json contains all related information
+        subset_page_json = page_json["mainEntity"]["offers"]["itemOffered"][0]
+        return subset_page_json
+
+    @staticmethod
+    def _is_product_page(soup):  # TODO: Implement this
+        return True
+
 
 def run():
-    reader = A101Parser()
-    dataset = reader.parse("a101.med.json.gz")
-    # parsers = {"a101": A101Parser(), "migros": NotImplementedError}
-    print(dataset)
+    parsers = {"a101": A101Parser(), "migros": MigrosParser()}
+    pm = ParserManager(parsers)
+    pm.start_parsing_from_drive("a101.med.json.gz")
 
 
 if __name__ == "__main__":
