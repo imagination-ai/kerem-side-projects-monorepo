@@ -3,9 +3,9 @@ from datetime import datetime
 import json
 import logging
 import os
+import gzip
 from typing import List
 
-from bs4 import BeautifulSoup
 import pandas as pd
 import requests
 from selenium import webdriver
@@ -36,7 +36,7 @@ class PageCrawlerRobot:
         if headless:
             options.add_argument("--headless")
 
-        options.add_argument("--no-sandbox")  # Q: bu alttakilere gerek var mi?
+        options.add_argument("--no-sandbox")
         options.add_argument("--disable-dev-shm-usage")
         options.add_argument("--user-data-dir=chrome-data")
         self.driver = webdriver.Chrome(
@@ -50,10 +50,10 @@ class PageCrawlerRobot:
             WebDriverWait(self.driver, 5).until(
                 EC.presence_of_element_located((by, field))
             )
-            return BeautifulSoup(self.driver.page_source, "lxml").text
+            return self.driver.page_source
         except NoSuchElementException:
-            # TODO (kerem): exception handling? think about it
-            pass
+            logger.exception(f"The price is not found in the {url}")
+            # TODO: add timeouterror
 
 
 class Crawler:
@@ -109,7 +109,7 @@ class Crawler:
         r = requests.get(url)
 
         if r.status_code == 200:
-            return BeautifulSoup(r.text, "lxml").text
+            return r.text
 
     def crawl(self, record: ItemRecord):
         """
@@ -213,10 +213,14 @@ class CrawlerManager:
         path="/",
         output_fn="inflation-crawl.jsonl",
     ):
-        output_fn_full_path = os.path.join(path, output_fn)
+
+        date_stamp_output_file = datetime.now().strftime("%Y%m%d%H%M%S")
+        output_fn_full_path = os.path.join(
+            path, f"{output_fn}-{date_stamp_output_file}.jsonl.gz"
+        )
         total_saved = 0
 
-        with open(output_fn_full_path, "w") as file:
+        with gzip.open(output_fn_full_path, "wt") as file:
             logger.info(f"Total of {len(records)} records will be processed.")
             for record in records:
                 d = self.crawlers[record.source.lower()].crawl(record)
