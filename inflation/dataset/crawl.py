@@ -1,23 +1,20 @@
 from dataclasses import dataclass
 from datetime import datetime
+import gzip
 import json
 import logging
 import os
-import gzip
-import shutil
 from typing import List
 
-from selenium import webdriver
-from selenium.webdriver.common.by import By
-from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.support import expected_conditions as EC
-from selenium.common.exceptions import NoSuchElementException
-from bs4 import BeautifulSoup
 import pandas as pd
 import requests
+from selenium import webdriver
+from selenium.common.exceptions import NoSuchElementException
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.support.ui import WebDriverWait
 
 from common.customized_logging import configure_logging
-
 
 configure_logging()
 logger = logging.getLogger(__name__)
@@ -46,7 +43,7 @@ class PageCrawlerRobot:
         )
         self.wait = WebDriverWait(self.driver, 5)
 
-    def get_page(self, url, by=By.CLASS_NAME, field="price"):
+    def get_page(self, url, by=By.CLASS_NAME, field="amount"):
         self.driver.get(url)
         try:
             WebDriverWait(self.driver, 5).until(

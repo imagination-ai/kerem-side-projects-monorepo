@@ -376,7 +376,10 @@ class MigrosParser(Parser):
 def run():
     parsers = {"a101": A101Parser(), "migros": MigrosParser()}
     pm = ParserManager(parsers)
-    pm.start_parsing_from_drive("a101.med.json.gz")
+    dataset = pm.start_parsing_from_drive(
+        "inflation/dataset/inflation-crawl-20220302074757.jsonl.gz"
+    )
+    print(f"{dataset.dataset}")
 
 
 if __name__ == "__main__":
