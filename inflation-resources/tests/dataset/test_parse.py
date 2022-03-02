@@ -67,6 +67,7 @@ def crawler_manager():
 #     )
 
 
+@pytest.mark.skip
 def test_a101_parse_product(
     parser_manager,
 ):
@@ -199,6 +200,7 @@ def test_migros_parse_products(
         assert record == truth
 
 
+@pytest.mark.skip
 def test_online_a101_crawler(crawler_manager, parser_manager):
     """
     It tests our crawler and reader still works on the A101 website.

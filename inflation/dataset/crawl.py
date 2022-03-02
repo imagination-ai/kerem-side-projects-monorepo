@@ -1,9 +1,9 @@
-from dataclasses import dataclass
-from datetime import datetime
+import gzip
 import json
 import logging
 import os
-import gzip
+from dataclasses import dataclass
+from datetime import datetime
 from typing import List
 
 import pandas as pd
@@ -44,7 +44,7 @@ class PageCrawlerRobot:
         )
         self.wait = WebDriverWait(self.driver, 5)
 
-    def get_page(self, url, by=By.CLASS_NAME, field="price"):
+    def get_page(self, url, by=By.CLASS_NAME, field="amount"):
         self.driver.get(url)
         try:
             WebDriverWait(self.driver, 5).until(
