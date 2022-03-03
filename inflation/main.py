@@ -8,7 +8,7 @@ from inflation.config import settings
 from inflation.dataset.crawl import CrawlerManager, A101Crawler, MigrosCrawler
 from common.clients.google_storage_client import GoogleStorageClient
 
-BUCKET_NAME = os.getenv("INFLATION_BUCKET", "inflation-in-turkey")
+BUCKET_NAME = os.getenv("CRAWLER_BUCKET", "inflation-project-crawler-output")
 
 CRAWLERS = {"a101": A101Crawler(), "migros": MigrosCrawler()}
 

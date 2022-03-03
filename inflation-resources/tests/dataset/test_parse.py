@@ -60,14 +60,6 @@ def crawler_manager():
     return CrawlerManager(CRAWLERS)
 
 
-# @pytest.fixture(scope="module")
-# def a101_test_dataset():
-#     return ParserManager(PARSERS).parse(
-#         INFLATION_RESOURCES_PATH / TEST_FILE_PATHS["a101"]
-#     )
-
-
-@pytest.mark.skip
 def test_a101_parse_product(
     parser_manager,
 ):
@@ -134,7 +126,6 @@ def test_a101_parse_product(
         assert record == truth
 
 
-@pytest.mark.skip
 def test_migros_parse_products(
     parser_manager,
 ):
@@ -145,12 +136,12 @@ def test_migros_parse_products(
             "migros",
             "Yayla Baldo Pirinç 1 Kg Gönen Bölgesi Mahsulü",
             "https://www.migros.com.tr/yayla-baldo-pirinc-1-kg-gonen-bolgesi-mahsulu-p-f7441",
-            "14001902",
+            "01012801",
             "Yayla",
             24.22,
             "TRY",
             True,
-            datetime.datetime(2022, 3, 1, 19, 27, 59),
+            datetime.datetime(2022, 3, 3, 14, 20, 15),
         ),
         InflationDataRecord(
             "0111201",
@@ -158,12 +149,12 @@ def test_migros_parse_products(
             "migros",
             "Söke Tam Buğday Unu 1 Kg",
             "https://www.migros.com.tr/soke-tam-bugday-unu-1-kg-p-4c73f6",
-            "28000285",
+            "05010422",
             "Söke",
             18.5,
             "TRY",
-            False,
-            datetime.datetime(2022, 3, 1, 19, 27, 59),
+            True,
+            datetime.datetime(2022, 3, 3, 14, 20, 17),
         ),
         InflationDataRecord(
             "0111208",
@@ -171,12 +162,12 @@ def test_migros_parse_products(
             "migros",
             "Bebelac Devam Sütü 1 400 G",
             "https://www.migros.com.tr/bebelac-devam-sutu-1-400-g-p-4cec83",
-            "17002483",
+            "05041283",
             "Bebelac",
-            72.85,
+            69.95,
             "TRY",
             True,
-            datetime.datetime(2022, 3, 1, 19, 27, 59),
+            datetime.datetime(2022, 3, 3, 14, 20, 19),
         ),
         InflationDataRecord(
             "0111209",
@@ -184,12 +175,12 @@ def test_migros_parse_products(
             "migros",
             "Yayla Pilavlık Bulgur 1 Kg",
             "https://www.migros.com.tr/yayla-pilavlik-bulgur-1-kg-p-1057a6",
-            "14000200",
+            "01071014",
             "Yayla",
-            10.45,
+            15.8,
             "TRY",
-            False,
-            datetime.datetime(2022, 3, 1, 19, 28),
+            True,
+            datetime.datetime(2022, 3, 3, 14, 20, 20),
         ),
     ]
 
@@ -200,7 +191,6 @@ def test_migros_parse_products(
         assert record == truth
 
 
-@pytest.mark.skip
 def test_online_a101_crawler(crawler_manager, parser_manager):
     """
     It tests our crawler and reader still works on the A101 website.
@@ -227,3 +217,26 @@ def test_online_a101_crawler(crawler_manager, parser_manager):
             assert record.product_code == "14001902"
             assert record.product_brand == "Ovadan"
             assert record.currency == "TRY"
+            assert type(record.price) is float
+
+
+def test_online_migros_crawler(crawler_manager, parser_manager):
+    with tempfile.TemporaryDirectory() as tmpdirname:
+        test_data_fp = crawler_manager.start_crawling(
+            RECORDS_FOR_ONLINE_TRIALS["migros"], tmpdirname, "test"
+        )
+        files = []
+        for entry in os.listdir(tmpdirname):
+            if os.path.isfile(os.path.join(tmpdirname, entry)):
+                files.append(entry)
+        assert len(files) == 1
+        record_data = parser_manager.start_parsing_from_drive(test_data_fp)
+        for record in record_data:
+            assert record.item_code == "505"
+            assert record.item_name == "sut"
+            assert record.source == "migros"
+            assert record.product_name == "Pınar Organik Süt 1 L"
+            assert record.product_code == "11019001"
+            assert record.product_brand == "Pınar"
+            assert record.currency == "TRY"
+            assert type(record.price) is float
