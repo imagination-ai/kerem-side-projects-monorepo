@@ -9,7 +9,8 @@ from common.customized_logging import configure_logging
 from inflation.config import settings
 from inflation.dataset.crawl import A101Crawler, CrawlerManager, MigrosCrawler
 
-BUCKET_NAME = os.getenv("GCS_BUCKET", "inflation-in-turkey")
+
+BUCKET_NAME = os.getenv("CRAWLER_BUCKET", "inflation-project-crawler-output")
 
 CRAWLERS = {"a101": A101Crawler(), "migros": MigrosCrawler()}
 
