@@ -9,9 +9,8 @@ from typing import List
 import pandas as pd
 import requests
 from selenium import webdriver
-from selenium.common.exceptions import NoSuchElementException
+from selenium.common.exceptions import TimeoutException
 from selenium.webdriver.common.by import By
-from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
 
 from common.customized_logging import configure_logging
@@ -41,18 +40,34 @@ class PageCrawlerRobot:
         self.driver = webdriver.Chrome(
             executable_path=executable_path, options=options
         )
-        self.wait = WebDriverWait(self.driver, 5)
+        self.wait = WebDriverWait(self.driver, 10)
 
-    def get_page(self, url, by=By.CLASS_NAME, field="amount"):
+    def is_page_ready(self):
+        raise NotImplementedError()
+
+    def get_page(self, url):
         self.driver.get(url)
+
         try:
-            WebDriverWait(self.driver, 5).until(
-                EC.presence_of_element_located((by, field))
-            )
-            return self.driver.page_source
-        except NoSuchElementException:
-            logger.exception(f"The price is not found in the {url}")
-            # TODO: add timeouterror
+            if self.is_page_ready():
+                return self.driver.page_source
+        except TimeoutException:
+            logger.warning(f"Timeout for {url}. Check your predicate.")
+
+
+class MigrosCrawlerRobot(PageCrawlerRobot):
+    def is_page_ready(self):
+        def _predicate(driver):
+            amount = driver.find_element(By.CLASS_NAME, "amount")
+            if len(amount.text) > 0 and amount.text.endswith("TL"):
+                return True
+            return False
+
+        self.wait.until(_predicate)
+        return True
+
+
+# TODO: add timeouterror
 
 
 class Crawler:
@@ -90,7 +105,7 @@ class Crawler:
 
 class MigrosCrawler(Crawler):
     def __init__(self):
-        self.robot = PageCrawlerRobot()
+        self.robot = MigrosCrawlerRobot()
 
     def get_page(self, url):
         return self.robot.get_page(url)
@@ -107,9 +122,12 @@ class CrawlerManager:
     @staticmethod
     def parse_excel_to_link_dataset(file_path):
         """
-        The function first reads the spreadsheet file containing item codes, names (COICOP),
-        and related products with their links, then parse the source information (e.g., Migros, A101, etc.)
-        and save the product's information as ItemRecord. It returns a list of ItemRecords.
+        The function first reads the spreadsheet file containing item codes,
+        names (COICOP),
+        and related products with their links, then parse the source information (
+        e.g., Migros, A101, etc.)
+        and save the product's information as ItemRecord. It returns a list of
+        ItemRecords.
 
 
         Args:
@@ -172,19 +190,25 @@ class CrawlerManager:
             path, f"{output_fn}-{date_stamp_output_file}.jsonl.gz"
         )
         total_saved = 0
+        total = len(records)
 
         with gzip.open(output_fn_full_path, "wt") as file:
-            logger.info(f"Total of {len(records)} records will be processed.")
+            logger.info(f"Total of {total} records will be processed.")
             for record in records:
                 d = self.crawlers[record.source.lower()].crawl(record)
-
-                data = json.dumps(d)
-                file.write(f"{data}\n")
-                total_saved += 1
+                if d is not None:
+                    data = json.dumps(d)
+                    file.write(f"{data}\n")
+                    total_saved += 1
+                else:
+                    logger.warning(f"Skipping {record}...")
 
             logger.info(
-                f"Total of {total_saved}/{len(records)} records are saved to {output_fn_full_path}"
+                f"Total of {total_saved}/{total} records are saved to "
+                f"{output_fn_full_path}"
             )
+            if total_saved != total:
+                logger.warning(f"{total - total_saved} records skipped.")
 
         return output_fn_full_path
 
