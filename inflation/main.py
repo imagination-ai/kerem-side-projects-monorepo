@@ -148,10 +148,8 @@ async def fetch_data(
 
 
 @app.get("/Parse", tags=["Parse"])
-async def parse_data(
-    source_filename, destination_filename="inflation-resources/data/inflation/"
-):
-
+async def parse_data(source_filename):
+    destination_filename = "inflation-resources/data/inflation/"
     parse_inflation_data(source_filename, destination_filename)
     return {
         "success": True,

@@ -320,11 +320,6 @@ class A101Parser(Parser):
 
 
 class MigrosParser(Parser):
-    ITEM_IN_STOCK = "InStock"
-    ITEM_NOT_IN_STOCK = (
-        "OutStock"  # TODO: Need to check. It's only a guess right now.
-    )
-
     @staticmethod
     def _get_product_name(soup):
         return soup["name"]
@@ -351,15 +346,10 @@ class MigrosParser(Parser):
 
     @staticmethod
     def _item_in_stock(soup):
-        availability = soup["offers"]["availability"].split("/")[-1]
-        if availability == MigrosParser.ITEM_IN_STOCK:
-            return True
-        elif availability == MigrosParser.ITEM_NOT_IN_STOCK:
-            pass  # After checking true definition (item_not_in) I'll delete the pass
+        if convert_price_to_us(soup["offers"]["price"]) == 0:
             return False
         else:
-            print(soup["offers"]["availability"])
-            raise TypeError
+            return True
 
     @staticmethod
     def _get_soup(soup):
