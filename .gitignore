@@ -140,7 +140,4 @@ portfolio/node_modules/
 portfolio/src_burger/
 
 # inflation
-inflation/chrome-data/
-inflation/dataset/chrome-data/
-inflation-resources/dataset/chrome-data
-inflation-resources/tests/dataset/chrome-data/
+**/chrome-data/

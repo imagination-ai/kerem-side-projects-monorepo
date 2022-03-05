@@ -25,7 +25,6 @@ TEST_FILE_PATHS = {
 }
 
 CRAWLERS = {"a101": A101Crawler(), "migros": MigrosCrawler()}
-
 PARSERS = {"a101": A101Parser(), "migros": MigrosParser()}
 
 RECORDS_FOR_ONLINE_TRIALS = {

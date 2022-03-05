@@ -132,14 +132,16 @@ class ParserManager:
                 records.append(self.parsers[line["source"].lower()].parse(line))
 
                 item_pages += 1
-        logger.info(f"total_pages={total_pages}, item_pages={item_pages}")
+        logger.info(
+            f"Parsing is done: {item_pages}/{total_pages} parsed to {data_file_path}"
+        )
 
         return InflationDataset(records)
 
     @staticmethod
     def open(data_file_path: str, mode: str):
         """
-        It takes the data file path
+        It takes the data file path (json or gzip) and opens that.
         Args:
             mode:
             data_file_path (str):
