@@ -190,6 +190,9 @@ def test_migros_parse_products(
         assert record == truth
 
 
+pytest.mark.skip
+
+
 def test_online_a101_crawler(crawler_manager, parser_manager):
     """
     It tests our crawler and reader still works on the A101 website.
@@ -217,6 +220,9 @@ def test_online_a101_crawler(crawler_manager, parser_manager):
             assert record.product_brand == "Ovadan"
             assert record.currency == "TRY"
             assert type(record.price) is float
+
+
+pytest.mark.skip
 
 
 def test_online_migros_crawler(crawler_manager, parser_manager):
