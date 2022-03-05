@@ -21,11 +21,6 @@ export default class App extends Component {
     let routes = (
       <Routes>
         <Route path="/" element={<Home></Home>} />
-        <Route path="/projects" element={<Projects />} />
-        <Route
-          path={`/projects/0`}
-          element={<StyleProject project={projects[0]} />}
-        />
         <Route
           path={`/projects/1`}
           element={<StyleProject project={projects[1]} />}

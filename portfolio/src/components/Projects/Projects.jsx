@@ -13,20 +13,22 @@ import projects from '../../lib/utils'
 
 const ProjectLayout = () => {
   return (
-    <Grid container spacing={2}>
+    <Grid container spacing={1}>
       <Grid item xs={12}>
         <Typography variant="h4" textAlign={'center'}>
           Projects
         </Typography>
       </Grid>
       {projects.map((project, i) => (
-        <Grid item key={i} xs={12} md={6}>
-          <ActionAreaCard
-            description={project.description}
-            title={project.title}
-            url={project.url}
-            key={i}
-          />
+        <Grid item key={i} xs={12} md={4}>
+          <Link to={`/projects/${i + 1}`} style={{ textDecoration: 'none' }}>
+            <ActionAreaCard
+              description={project.description}
+              title={project.title}
+              url={project.url}
+              key={i}
+            />
+          </Link>
         </Grid>
       ))}
     </Grid>

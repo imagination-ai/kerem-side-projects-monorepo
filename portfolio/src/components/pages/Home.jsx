@@ -7,7 +7,7 @@ import Projects from '../Projects/Projects'
 
 export default function Home() {
   return (
-    <Box sx={{ flexGrow: 1 }} p="10px">
+    <Box sx={{ flex: 1 }}>
       <Grid container spacing={1}>
         <Grid item xs={12} justifyContent={'center'}>
           <Box>
@@ -21,11 +21,9 @@ export default function Home() {
         </Grid>
         <Grid item xs={12} md={9}>
           <Header></Header>
-
           <Projects />
         </Grid>
-
-        <Grid item xs={12} md={2.9}>
+        <Grid item xs={12} md={3}>
           <Sidebar></Sidebar>
         </Grid>
       </Grid>
