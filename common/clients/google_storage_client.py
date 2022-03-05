@@ -20,5 +20,9 @@ class GoogleStorageClient:
 
     def download(self, source_filename, destination_filename):
 
+        # if it is a string then use download_to_filename. if it is not then use
+        # download_to_file.
+
         blob = self.bucket.blob(source_filename)
         blob.download_to_filename(destination_filename)
+        # download to file and return to fullpath.

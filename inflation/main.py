@@ -28,7 +28,9 @@ pm = ParserManager(PARSERS)
 crawler_client = GoogleStorageClient(bucket_name=CRAWLER_BUCKET)
 parser_client = GoogleStorageClient(bucket_name=PARSER_BUCKET)
 
-OUTPUT_PATH = "/applications/downloaded-files/"
+OUTPUT_PATH_DIR = "/build/data"
+CRAWLER_OUTPUT_DIR = f"{OUTPUT_PATH_DIR}/crawler"
+PARSER_OUTPUT_DIR = f"{OUTPUT_PATH_DIR}/parser"
 
 logger.info(
     f"Starting the application with -- Crawlers:{CRAWLERS}, Bucket Name:{CRAWLER_BUCKET}"
@@ -36,6 +38,19 @@ logger.info(
 logger.info(
     f"Starting the application with -- Parsers:{PARSERS}, Bucket Name:{PARSER_BUCKET}"
 )
+
+
+def create_directory():
+    dirs = [CRAWLER_OUTPUT_DIR, PARSER_OUTPUT_DIR]
+    for directory in dirs:
+        try:
+            os.mkdir(directory)
+            logger.info(f"{directory} is created")
+        except OSError:
+            logger.info(f"Skipping creating {directory} since it exists.")
+
+
+create_directory()
 
 
 def fetch_inflation_data(excel_path, output_path, filename):
@@ -66,6 +81,10 @@ def fetch_inflation_data(excel_path, output_path, filename):
 def parse_inflation_data(
     source_filename, destination_filename="inflation-resources/data/inflation/"
 ):
+    # client should be crawl client.
+    # destination_filename should be full filename not a path.
+    # move this logic to support temp file.
+
     parser_client.download(
         source_filename, destination_filename=destination_filename
     )
@@ -126,7 +145,7 @@ async def fetch_data_async(
 ):
     filename = f"{datetime.now().strftime('%Y-%m-%d')}.crawl.jsonl"
     background_tasks.add_task(
-        fetch_inflation_data, excel_path, OUTPUT_PATH, filename
+        fetch_inflation_data, excel_path, CRAWLER_OUTPUT_DIR, filename
     )
     return {
         "success": True,
@@ -140,7 +159,7 @@ async def fetch_data(
     "/1Xv5UOTpzDPELdtk8JW1oDWbjpsEexAKKLzgzZBB-2vw/edit#gid=0",
 ):
     filename = f"{datetime.now().strftime('%Y-%m-%d')}.crawl.jsonl"
-    fetch_inflation_data(excel_path, OUTPUT_PATH, filename)
+    fetch_inflation_data(excel_path, CRAWLER_OUTPUT_DIR, filename)
     return {
         "success": True,
         "message": f"{CRAWLER_BUCKET}/{filename} is preparing.",
@@ -149,8 +168,7 @@ async def fetch_data(
 
 @app.get("/Parse", tags=["Parse"])
 async def parse_data(source_filename):
-    destination_filename = "inflation-resources/data/inflation/"
-    parse_inflation_data(source_filename, destination_filename)
+    parse_inflation_data(source_filename, PARSER_OUTPUT_DIR)
     return {
         "success": True,
         "message": f"{PARSER_BUCKET}/{source_filename} is preparing.",
@@ -159,7 +177,7 @@ async def parse_data(source_filename):
 
 @app.get("/Stats", tags=["Stats"])
 async def get_db_stats():
-    return collect_db_stats(OUTPUT_PATH)
+    return collect_db_stats(CRAWLER_OUTPUT_DIR)
 
 
 if __name__ == "__main__":

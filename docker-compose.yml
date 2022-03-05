@@ -37,7 +37,7 @@ services:
     restart: "no"
     environment:
       - STORAGE_EMULATOR_HOST=http://mock-cloud-storage:4443
-      - GCS_BUCKET=test-bucket
+      - CRAWLER_BUCKET=test-bucket
     depends_on:
       - mock-cloud-storage
     entrypoint: ["python", "/applications/inflation/main.py"]

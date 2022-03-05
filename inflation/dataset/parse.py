@@ -58,14 +58,14 @@ class InflationDataset:
             indxs = list(range(start, stop, step))
             return [self.dataset[i] for i in indxs]
 
-    def save_dataset(self, output_file_name):
+    def save(self, output_file_name):
         """
         It saves dataset records by serializing.
         """
-        full_path = SAVED_DATASETS_DIR_PATH / output_file_name
 
-        with open(full_path, "wb") as f:
+        with open(output_file_name, "wb") as f:
             cPickle.dump(self, f)
+        return output_file_name
 
     @classmethod
     def read_dataset(cls, file_path):
@@ -107,7 +107,8 @@ class ParserManager:
 
         Args:
             data_file_path (str): The data file path in the Google Storage.
-            destination_file_path (str): The destination file path for saving the file (gzip
+            destination_file_path (str): The destination file path for saving the file
+            (gzip
             or json file format).
 
         Returns:
@@ -119,6 +120,7 @@ class ParserManager:
     def start_parsing_from_drive(self, data_file_path: str):
         return self._start_parsing(data_file_path)
 
+    # TODO consider adding a parameter
     def _start_parsing(self, data_file_path: str):
         records = []
 
@@ -136,7 +138,8 @@ class ParserManager:
             f"Parsing is done: {item_pages}/{total_pages} parsed to {data_file_path}"
         )
 
-        return InflationDataset(records)
+        # TODO (kerem) give the filename
+        return InflationDataset(records).save()
 
     @staticmethod
     def open(data_file_path: str, mode: str):
@@ -193,13 +196,13 @@ class Parser:
         NotImplemented
 
     def _get_soup(self, soup):
-        """This function aids different parses' method (e.g., MigrosParser._get_product_name) as providing
+        """This function aids different parses' method (e.g.,
+        MigrosParser._get_product_name) as providing
         true soup object."""
 
         NotImplemented
 
     def parse(self, line) -> InflationDataRecord:
-
         """It goes through the `filename` and create InflationRecords
 
         Args:
@@ -366,10 +369,11 @@ class MigrosParser(Parser):
 
 
 def run():
+    # TODO (kerem) add argparse.
     parsers = {"a101": A101Parser(), "migros": MigrosParser()}
     pm = ParserManager(parsers)
     dataset = pm.start_parsing_from_drive(
-        "inflation/dataset/inflation-crawl-20220302074757.jsonl.gz"
+        "inflation/dataset/inflation-crawl.jsonl-20220305103250.jsonl.gz"
     )
     print(f"{dataset.dataset}")
 
