@@ -82,7 +82,7 @@ def fetch_inflation_data(excel_path, output_path, filename):
 
 def parse_inflation_data(source_filename, output_file_path=PARSER_OUTPUT_DIR):
     parsed_inflation_data_fn = pm.start_parsing(
-        source_filename, output_file_path
+        source_filename, output_file_path, mode="google-storage"
     )
     logger.info(f"{source_filename} is parsed successfully.")
 
