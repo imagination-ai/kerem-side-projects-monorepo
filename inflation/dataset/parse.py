@@ -2,6 +2,9 @@ import json
 import datetime
 import logging
 import _pickle as cPickle
+import os
+import tempfile
+
 import pandas as pd
 import gzip
 
@@ -12,9 +15,10 @@ from bs4 import BeautifulSoup
 from common.customized_logging import configure_logging
 from common.utils.mathematical_conversation_utils import convert_price_to_us
 
-SAVED_DATASETS_DIR_PATH = (
-    Path(__file__).parents[2] / "inflation-resources/data/"
-)
+
+OUTPUT_PATH_DIR = Path(__file__).parents[2] / "inflation-resources/data/"
+PARSER_OUTPUT_DIR = f"{OUTPUT_PATH_DIR}/parser"
+
 NOT_AVAILABLE = "___NA___"
 
 configure_logging()
@@ -68,7 +72,7 @@ class InflationDataset:
         return output_file_name
 
     @classmethod
-    def read_dataset(cls, file_path):
+    def read(cls, file_path):
         with open(file_path, "rb") as input_file:
             return cPickle.load(input_file)
 
@@ -94,34 +98,42 @@ class InflationDatasetIterator:
 
 
 class ParserManager:
-    def __init__(self, parsers: dict):
+    def __init__(self, parsers: dict, crawler_client=None):
         self.parsers = parsers
+        self.crawler_client = crawler_client
 
-    def start_parsing_from_google_storage(
+    def start_parsing(
+        self, data_file_path: str, output_file_path: str, mode="hard-drive"
+    ):
+
+        if mode == "hard-drive":
+            return self._start_parsing(data_file_path, output_file_path)
+
+        elif mode == "google-storage":
+            return self._start_parsing_from_google_storage(
+                data_file_path, output_file_path
+            )
+
+    def _start_parsing_from_google_storage(
         self,
-        google_storage_client,
-        data_file_path: str,
-        destination_file_path: str,
+        source_filename: str,
+        output_file_path: str,
     ):
         """
 
         Args:
-            data_file_path (str): The data file path in the Google Storage.
-            destination_file_path (str): The destination file path for saving the file
-            (gzip
-            or json file format).
+            source_filename (str): The source filename in the Google Storage.
+            output_file_path (str): The path to save InflationDataset object.
 
         Returns:
 
         """
-        google_storage_client.download(data_file_path, destination_file_path)
-        return self._start_parsing(destination_file_path)
+        with tempfile.TemporaryDirectory() as tmpdirname:
+            self.crawler_client.download(source_filename, tmpdirname)
+            parsed_data_fp = os.path.join(tmpdirname, source_filename)
+            return self._start_parsing(parsed_data_fp, output_file_path)
 
-    def start_parsing_from_drive(self, data_file_path: str):
-        return self._start_parsing(data_file_path)
-
-    # TODO consider adding a parameter
-    def _start_parsing(self, data_file_path: str):
+    def _start_parsing(self, data_file_path: str, output_file_path: str):
         records = []
 
         with ParserManager.open(data_file_path, mode="rt") as file:
@@ -138,8 +150,13 @@ class ParserManager:
             f"Parsing is done: {item_pages}/{total_pages} parsed to {data_file_path}"
         )
 
-        # TODO (kerem) give the filename
-        return InflationDataset(records).save()
+        date_stamp_output_file = datetime.datetime.now().strftime(
+            "%Y%m%d%H%M%S"
+        )
+        output_fn_full_path = os.path.join(
+            output_file_path, f"parsed-inflation-data-{date_stamp_output_file}"
+        )
+        return InflationDataset(records).save(output_fn_full_path)
 
     @staticmethod
     def open(data_file_path: str, mode: str):
@@ -369,13 +386,24 @@ class MigrosParser(Parser):
 
 
 def run():
-    # TODO (kerem) add argparse.
+    import argparse
+
+    arg_parser = argparse.ArgumentParser(
+        description="argument parser for Inflation Parser"
+    )
+    arg_parser.add_argument("--data-file-path", type=str)
+    arg_parser.add_argument("--output-file-path", type=str)
+    args = arg_parser.parse_args()
+    logger.info(f"{args}")
+
     parsers = {"a101": A101Parser(), "migros": MigrosParser()}
     pm = ParserManager(parsers)
-    dataset = pm.start_parsing_from_drive(
-        "inflation/dataset/inflation-crawl.jsonl-20220305103250.jsonl.gz"
+
+    dataset = pm.start_parsing(
+        data_file_path=args.data_file_path,
+        output_file_path=args.output_file_path,
     )
-    print(f"{dataset.dataset}")
+    print(dataset)
 
 
 if __name__ == "__main__":

@@ -7,6 +7,7 @@ import os
 from inflation.dataset.parse import (
     ParserManager,
     InflationDataRecord,
+    InflationDataset,
     A101Parser,
     MigrosParser,
 )
@@ -62,7 +63,6 @@ def crawler_manager():
 def test_a101_parse_product(
     parser_manager,
 ):
-
     truths = [
         InflationDataRecord(
             "0111101",
@@ -117,12 +117,14 @@ def test_a101_parse_product(
             datetime.datetime(2022, 3, 1, 19, 28),
         ),
     ]
+    with tempfile.TemporaryDirectory() as tmpdirname:
+        parsed_data_fp = parser_manager.start_parsing(
+            str(INFLATION_RESOURCES_PATH / TEST_FILE_PATHS["a101"]), tmpdirname
+        )
 
-    record_data = parser_manager.start_parsing_from_drive(
-        str(INFLATION_RESOURCES_PATH / TEST_FILE_PATHS["a101"])
-    )
-    for record, truth in zip(record_data, truths):
-        assert record == truth
+        parsed_dataset = InflationDataset.read(parsed_data_fp)
+        for data_record, truth in zip(parsed_dataset, truths):
+            assert data_record == truth
 
 
 def test_migros_parse_products(
@@ -183,16 +185,18 @@ def test_migros_parse_products(
         ),
     ]
 
-    record_data = parser_manager.start_parsing_from_drive(
-        str(INFLATION_RESOURCES_PATH / TEST_FILE_PATHS["migros"])
-    )
-    for record, truth in zip(record_data, truths):
-        assert record == truth
+    with tempfile.TemporaryDirectory() as tmpdirname:
+        parsed_data_fp = parser_manager.start_parsing(
+            str(INFLATION_RESOURCES_PATH / TEST_FILE_PATHS["migros"]),
+            tmpdirname,
+        )
+
+        parsed_dataset = InflationDataset.read(parsed_data_fp)
+        for data_record, truth in zip(parsed_dataset, truths):
+            assert data_record == truth
 
 
-pytest.mark.skip
-
-
+@pytest.mark.skip  # (TODO: this test should be update since start_parsing updated)
 def test_online_a101_crawler(crawler_manager, parser_manager):
     """
     It tests our crawler and reader still works on the A101 website.
@@ -210,7 +214,7 @@ def test_online_a101_crawler(crawler_manager, parser_manager):
             if os.path.isfile(os.path.join(tmpdirname, entry)):
                 files.append(entry)
         assert len(files) == 1
-        record_data = parser_manager.start_parsing_from_drive(test_data_fp)
+        record_data = parser_manager.start_parsing(test_data_fp)
         for record in record_data:
             assert record.item_code == "123"
             assert record.item_name == "pirinc"
@@ -222,9 +226,7 @@ def test_online_a101_crawler(crawler_manager, parser_manager):
             assert type(record.price) is float
 
 
-pytest.mark.skip
-
-
+@pytest.mark.skip
 def test_online_migros_crawler(crawler_manager, parser_manager):
     with tempfile.TemporaryDirectory() as tmpdirname:
         test_data_fp = crawler_manager.start_crawling(
@@ -235,7 +237,7 @@ def test_online_migros_crawler(crawler_manager, parser_manager):
             if os.path.isfile(os.path.join(tmpdirname, entry)):
                 files.append(entry)
         assert len(files) == 1
-        record_data = parser_manager.start_parsing_from_drive(test_data_fp)
+        record_data = parser_manager.start_parsing(test_data_fp)
         for record in record_data:
             assert record.item_code == "505"
             assert record.item_name == "sut"

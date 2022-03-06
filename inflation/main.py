@@ -24,11 +24,13 @@ logger = logging.getLogger(__name__)
 
 app = FastAPI()
 cm = CrawlerManager(CRAWLERS)
-pm = ParserManager(PARSERS)
 crawler_client = GoogleStorageClient(bucket_name=CRAWLER_BUCKET)
 parser_client = GoogleStorageClient(bucket_name=PARSER_BUCKET)
+pm = ParserManager(PARSERS, crawler_client)
 
-OUTPUT_PATH_DIR = "/build/data"
+OUTPUT_PATH_DIR = (
+    "/build/data"  # Q: Eger build diye verirsek bunu local'de nasil calisacak?
+)
 CRAWLER_OUTPUT_DIR = f"{OUTPUT_PATH_DIR}/crawler"
 PARSER_OUTPUT_DIR = f"{OUTPUT_PATH_DIR}/parser"
 
@@ -78,39 +80,17 @@ def fetch_inflation_data(excel_path, output_path, filename):
     logger.info(f"Crawling done for {excel_path}: {CRAWLER_BUCKET}/{basename}")
 
 
-def parse_inflation_data(
-    source_filename, destination_filename="inflation-resources/data/inflation/"
-):
-    # client should be crawl client.
-    # destination_filename should be full filename not a path.
-    # move this logic to support temp file.
-
-    parser_client.download(
-        source_filename, destination_filename=destination_filename
+def parse_inflation_data(source_filename, output_file_path=PARSER_OUTPUT_DIR):
+    parsed_inflation_data_fn = pm.start_parsing(
+        source_filename, output_file_path
     )
-    logger.info(
-        f"Downlading {source_filename} to {CRAWLER_BUCKET}/{destination_filename}"
-    )
-
-    crawled_inflation_data_fn = os.path.join(
-        destination_filename, source_filename
-    )
-    parsed_inflation_data = pm.start_parsing_from_drive(
-        crawled_inflation_data_fn
-    )  # Q: start parsing data donuyor orada json kaydedip yine adres donmek daha mantikli olabilir. O zaman alttaki kisimlar tasinacak.
-
-    parsed_inflation_data_fn = os.path.join(
-        destination_filename, f"{source_filename}.json.gz"
-    )
-    logger.info(f"Parsing done for {source_filename}")
-
-    with gzip.open(parsed_inflation_data_fn, "wt") as file:
-        data = json.dumps(parsed_inflation_data)
-        file.write(data)
+    logger.info(f"{source_filename} is parsed successfully.")
 
     basename = os.path.basename(parsed_inflation_data_fn)
     parser_client.upload(parsed_inflation_data_fn, basename)
-    logger.info(f"Uploading {source_filename} to {PARSER_BUCKET}/{basename}")
+    logger.info(
+        f"Uploading {basename} InflationDataset object to {PARSER_BUCKET}/{basename}"
+    )
 
 
 def collect_db_stats(db_path):
