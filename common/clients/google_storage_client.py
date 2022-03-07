@@ -1,3 +1,5 @@
+import os.path
+
 from google.cloud import storage
 import logging
 from common.customized_logging import configure_logging
@@ -20,9 +22,7 @@ class GoogleStorageClient:
 
     def download(self, source_filename, destination_filename):
 
-        # if it is a string then use download_to_filename. if it is not then use
-        # download_to_file.
-
         blob = self.bucket.blob(source_filename)
-        blob.download_to_filename(destination_filename)
-        # download to file and return to fullpath.
+        full_path = os.path.join(destination_filename, source_filename)
+        blob.download_to_file(full_path)
+        return full_path

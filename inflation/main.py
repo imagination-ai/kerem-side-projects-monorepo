@@ -1,3 +1,4 @@
+import tempfile
 from datetime import datetime
 import logging
 import os
@@ -91,6 +92,25 @@ def parse_inflation_data(source_filename, output_file_path=PARSER_OUTPUT_DIR):
     logger.info(
         f"Uploading {basename} InflationDataset object to {PARSER_BUCKET}/{basename}"
     )
+
+    def start_parsing_from_google_storage(
+        self,
+        source_filename: str,
+        output_file_path: str,
+    ):
+        """
+
+        Args:
+            source_filename (str): The source filename in the Google Storage.
+            output_file_path (str): The path to save InflationDataset object.
+
+        Returns:
+
+        """
+        with tempfile.TemporaryDirectory() as tmpdirname:
+            self.crawler_client.download(source_filename, tmpdirname)  #
+            parsed_data_fp = os.path.join(tmpdirname, source_filename)
+            return self._start_parsing(parsed_data_fp, output_file_path)
 
 
 def collect_db_stats(db_path):

@@ -98,42 +98,11 @@ class InflationDatasetIterator:
 
 
 class ParserManager:
-    def __init__(self, parsers: dict, crawler_client=None):
+    def __init__(self, parsers: dict):
         self.parsers = parsers
-        self.crawler_client = crawler_client
 
-    def start_parsing(
-        self, data_file_path: str, output_file_path: str, mode="hard-drive"
-    ):
+    def start_parsing(self, data_file_path: str, output_file_path: str):
 
-        if mode == "hard-drive":
-            return self._start_parsing(data_file_path, output_file_path)
-
-        elif mode == "google-storage":
-            return self._start_parsing_from_google_storage(
-                data_file_path, output_file_path
-            )
-
-    def _start_parsing_from_google_storage(
-        self,
-        source_filename: str,
-        output_file_path: str,
-    ):
-        """
-
-        Args:
-            source_filename (str): The source filename in the Google Storage.
-            output_file_path (str): The path to save InflationDataset object.
-
-        Returns:
-
-        """
-        with tempfile.TemporaryDirectory() as tmpdirname:
-            self.crawler_client.download(source_filename, tmpdirname)
-            parsed_data_fp = os.path.join(tmpdirname, source_filename)
-            return self._start_parsing(parsed_data_fp, output_file_path)
-
-    def _start_parsing(self, data_file_path: str, output_file_path: str):
         records = []
 
         with ParserManager.open(data_file_path, mode="rt") as file:
