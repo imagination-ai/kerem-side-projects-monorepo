@@ -1,11 +1,11 @@
 import React, { Component } from 'react'
 import { Route, Routes } from 'react-router-dom'
-import Projects from './components/Projects/Projects'
 import ResponsiveAppBar from './components/ResponsiveAppBar'
 import StyleProject from './components/StyleProject'
 import projects from './lib/utils'
 import Typography from '@mui/material/Typography'
 import Home from './components/pages/Home'
+import ScrollToTop from './components/ScrollToTop'
 
 const Layout = (props) => {
   return (
@@ -32,16 +32,16 @@ export default class App extends Component {
         <Route path="/" element={<Home></Home>} />
         <Route
           path={`/projects/1`}
+          element={<StyleProject project={projects[0]} />}
+        />
+        {/* <Route
+          path={`/projects/2`}
           element={<StyleProject project={projects[1]} />}
         />
         <Route
-          path={`/projects/2`}
-          element={<StyleProject project={projects[2]} />}
-        />
-        <Route
           path={`/projects/3`}
-          element={<StyleProject project={projects[3]} />}
-        />
+          element={<StyleProject project={projects[2]} />}
+        /> */}
         <Route
           path="/about"
           element={
@@ -60,6 +60,10 @@ export default class App extends Component {
         />
       </Routes>
     )
-    return <Layout child={routes}></Layout>
+    return (
+      <ScrollToTop>
+        <Layout child={routes}></Layout>
+      </ScrollToTop>
+    )
   }
 }

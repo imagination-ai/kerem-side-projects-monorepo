@@ -1,11 +1,4 @@
-import {
-  Container,
-  Grid,
-  Card,
-  CardContent,
-  CardActions,
-  Typography,
-} from '@mui/material'
+import { Grid, Typography } from '@mui/material'
 import React from 'react'
 import { Link, Outlet } from 'react-router-dom'
 import ActionAreaCard from '../ActionAreaCard/ActionAreaCard'
