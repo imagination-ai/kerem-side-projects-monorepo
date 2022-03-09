@@ -15,7 +15,7 @@ const ProjectLayout = () => {
   return (
     <Grid container spacing={1}>
       <Grid item xs={12}>
-        <Typography variant="h4" textAlign={'center'}>
+        <Typography variant="h4" textAlign={'center'} marginTop="1em">
           Projects
         </Typography>
       </Grid>

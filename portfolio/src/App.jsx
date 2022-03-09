@@ -11,7 +11,16 @@ const Layout = (props) => {
   return (
     <>
       <ResponsiveAppBar></ResponsiveAppBar>
-      {props.child}
+      <div
+        style={{
+          flexGrow: 1,
+          maxWidth: '1600px',
+          width: '80%',
+          margin: '0 auto',
+        }}
+      >
+        {props.child}
+      </div>
     </>
   )
 }
