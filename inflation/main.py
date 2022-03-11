@@ -1,30 +1,59 @@
+import tempfile
 from datetime import datetime
 import logging
 import os
+import gzip
+import json
 
 from fastapi import BackgroundTasks, FastAPI
 
 from common.clients.google_storage_client import GoogleStorageClient
 from common.customized_logging import configure_logging
 from inflation.config import settings
-from inflation.dataset.crawl import A101Crawler, CrawlerManager, MigrosCrawler
+from inflation.dataset.crawl import CrawlerManager, A101Crawler, MigrosCrawler
+from inflation.dataset.parse import ParserManager, A101Parser, MigrosParser
 
-BUCKET_NAME = os.getenv("GCS_BUCKET", "inflation-in-turkey")
+
+CRAWLER_BUCKET = os.getenv("CRAWLER_BUCKET", "inflation-project-crawler-output")
+PARSER_BUCKET = os.getenv("PARSER_BUCKET", "inflation-project-parser-output")
 
 CRAWLERS = {"a101": A101Crawler(), "migros": MigrosCrawler()}
+PARSERS = {"a101": A101Parser(), "migros": MigrosParser()}
 
 configure_logging()
 logger = logging.getLogger(__name__)
 
 app = FastAPI()
 cm = CrawlerManager(CRAWLERS)
-storage_client = GoogleStorageClient(bucket_name=BUCKET_NAME)
+crawler_client = GoogleStorageClient(bucket_name=CRAWLER_BUCKET)
+parser_client = GoogleStorageClient(bucket_name=PARSER_BUCKET)
+pm = ParserManager(PARSERS, crawler_client)
 
-OUTPUT_PATH = "/applications/downloaded-files/"
+OUTPUT_PATH_DIR = (
+    "/build/data"  # Q: Eger build diye verirsek bunu local'de nasil calisacak?
+)
+CRAWLER_OUTPUT_DIR = f"{OUTPUT_PATH_DIR}/crawler"
+PARSER_OUTPUT_DIR = f"{OUTPUT_PATH_DIR}/parser"
 
 logger.info(
-    f"Starting the application with -- Crawlers:{CRAWLERS}, Bucket Name:{BUCKET_NAME}"
+    f"Starting the application with -- Crawlers:{CRAWLERS}, Bucket Name:{CRAWLER_BUCKET}"
 )
+logger.info(
+    f"Starting the application with -- Parsers:{PARSERS}, Bucket Name:{PARSER_BUCKET}"
+)
+
+
+def create_directory():
+    dirs = [CRAWLER_OUTPUT_DIR, PARSER_OUTPUT_DIR]
+    for directory in dirs:
+        try:
+            os.mkdir(directory)
+            logger.info(f"{directory} is created")
+        except OSError:
+            logger.info(f"Skipping creating {directory} since it exists.")
+
+
+create_directory()
 
 
 def fetch_inflation_data(excel_path, output_path, filename):
@@ -46,10 +75,27 @@ def fetch_inflation_data(excel_path, output_path, filename):
     inflation_fn = cm.start_crawling(records, output_path, filename)
     basename = os.path.basename(inflation_fn)
 
-    logger.info(f"Uploading {inflation_fn} to {BUCKET_NAME}/{basename}")
+    logger.info(f"Uploading {inflation_fn} to {CRAWLER_BUCKET}/{basename}")
 
-    storage_client.upload(inflation_fn, basename)
-    logger.info(f"Crawling done for {excel_path}: {BUCKET_NAME}/{basename}")
+    crawler_client.upload(inflation_fn, basename)
+    logger.info(f"Crawling done for {excel_path}: {CRAWLER_BUCKET}/{basename}")
+
+
+def parse_inflation_data(source_filename, output_file_path=PARSER_OUTPUT_DIR):
+
+    with tempfile.NamedTemporaryFile() as tmpfile:
+        crawler_client.download(source_filename, tmpfile)
+
+        parsed_inflation_data_fn = pm.start_parsing(
+            tmpfile.name, output_file_path
+        )
+        logger.info(f"{source_filename} parsed successfully to {tmpfile.name}.")
+
+    basename = os.path.basename(parsed_inflation_data_fn)
+    parser_client.upload(parsed_inflation_data_fn, basename)
+    logger.info(
+        f"Uploading {basename} InflationDataset object to {PARSER_BUCKET}/{basename}"
+    )
 
 
 def collect_db_stats(db_path):
@@ -84,11 +130,11 @@ async def fetch_data_async(
 ):
     filename = f"{datetime.now().strftime('%Y-%m-%d')}.crawl.jsonl"
     background_tasks.add_task(
-        fetch_inflation_data, excel_path, OUTPUT_PATH, filename
+        fetch_inflation_data, excel_path, CRAWLER_OUTPUT_DIR, filename
     )
     return {
         "success": True,
-        "message": f"{BUCKET_NAME}/{filename} is preparing.",
+        "message": f"{CRAWLER_BUCKET}/{filename} is preparing.",
     }
 
 
@@ -98,16 +144,25 @@ async def fetch_data(
     "/1Xv5UOTpzDPELdtk8JW1oDWbjpsEexAKKLzgzZBB-2vw/edit#gid=0",
 ):
     filename = f"{datetime.now().strftime('%Y-%m-%d')}.crawl.jsonl"
-    fetch_inflation_data(excel_path, OUTPUT_PATH, filename)
+    fetch_inflation_data(excel_path, CRAWLER_OUTPUT_DIR, filename)
     return {
         "success": True,
-        "message": f"{BUCKET_NAME}/{filename} is preparing.",
+        "message": f"{CRAWLER_BUCKET}/{filename} is preparing.",
+    }
+
+
+@app.get("/Parse", tags=["Parse"])
+async def parse_data(source_filename):
+    parse_inflation_data(source_filename, PARSER_OUTPUT_DIR)
+    return {
+        "success": True,
+        "message": f"{PARSER_BUCKET}/{source_filename} is preparing.",
     }
 
 
 @app.get("/Stats", tags=["Stats"])
 async def get_db_stats():
-    return collect_db_stats(OUTPUT_PATH)
+    return collect_db_stats(CRAWLER_OUTPUT_DIR)
 
 
 if __name__ == "__main__":

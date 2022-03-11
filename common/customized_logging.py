@@ -37,9 +37,15 @@ def configure_logging():
                 "level": "INFO",
                 "propagate": True,
             },
+            "__main__": {
+                "handlers": ["default"],
+                "level": "INFO",
+                "propagate": True,
+            },
         },
     }
     global CONFIGURED
     if not CONFIGURED:
         logging.config.dictConfig(config)
         CONFIGURED = True
+        print("Configured")

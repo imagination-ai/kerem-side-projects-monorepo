@@ -43,3 +43,6 @@ test:
 
 format:
 	 $(RUN) black -t py39 -l 80 $$(find inflation* style* common* -name "*.py")
+
+steel-thread:
+	$(RUN) python -m inflation.steel_thread --excel-path https://docs.google.com/spreadsheets/d/1_hKfQJ2DEF4TAHH3pxFCYcBgJXBYG9LZZElnF4Yf04A/edit#gid=0 --path .

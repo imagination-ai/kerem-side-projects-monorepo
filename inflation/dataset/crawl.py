@@ -1,18 +1,17 @@
-from dataclasses import dataclass
-from datetime import datetime
+import gzip
 import json
 import logging
 import os
+from dataclasses import dataclass
+from datetime import datetime
 from typing import List
 
-from bs4 import BeautifulSoup
 import pandas as pd
 import requests
 from selenium import webdriver
-from selenium.common.exceptions import NoSuchElementException
+from selenium.common.exceptions import TimeoutException
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.common.by import By
-from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
 
 from common.customized_logging import configure_logging
@@ -36,24 +35,40 @@ class PageCrawlerRobot:
         if headless:
             options.add_argument("--headless")
 
-        options.add_argument("--no-sandbox")  # Q: bu alttakilere gerek var mi?
+        options.add_argument("--no-sandbox")
         options.add_argument("--disable-dev-shm-usage")
         options.add_argument("--user-data-dir=chrome-data")
         self.driver = webdriver.Chrome(
             service=Service(executable_path), options=options
         )
-        self.wait = WebDriverWait(self.driver, 5)
+        self.wait = WebDriverWait(self.driver, 10)
 
-    def get_page(self, url, by=By.CLASS_NAME, field="price"):
+    def is_page_ready(self):
+        raise NotImplementedError()
+
+    def get_page(self, url):
         self.driver.get(url)
+
         try:
-            WebDriverWait(self.driver, 5).until(
-                EC.presence_of_element_located((by, field))
-            )
-            return BeautifulSoup(self.driver.page_source, "lxml").text
-        except NoSuchElementException:
-            # TODO (kerem): exception handling? think about it
-            pass
+            if self.is_page_ready():
+                return self.driver.page_source
+        except TimeoutException:
+            logger.warning(f"Timeout for {url}. Check your predicate.")
+
+
+class MigrosCrawlerRobot(PageCrawlerRobot):
+    def is_page_ready(self):
+        def _predicate(driver):
+            amount = driver.find_element(By.CLASS_NAME, "amount")
+            if len(amount.text) > 0 and amount.text.endswith("TL"):
+                return True
+            return False
+
+        self.wait.until(_predicate)
+        return True
+
+
+# TODO: add timeouterror
 
 
 class Crawler:
@@ -109,13 +124,13 @@ class Crawler:
         r = requests.get(url)
 
         if r.status_code == 200:
-            return BeautifulSoup(r.text, "lxml").text
+            return r.text
 
     def crawl(self, record: ItemRecord):
         """
         Args:
             record (ItemRecord):
-        Returns:
+        Returns (dict):
 
         """
 
@@ -133,7 +148,7 @@ class Crawler:
 
 class MigrosCrawler(Crawler):
     def __init__(self):
-        self.robot = PageCrawlerRobot()
+        self.robot = MigrosCrawlerRobot()
 
     def get_page(self, url):
         return self.robot.get_page(url)
@@ -149,16 +164,21 @@ class CrawlerManager:
 
     @staticmethod
     def parse_excel_to_link_dataset(file_path):
-        """It takes excel file path convert them into list of TurkstatItemRecord class
-        and save it into a list.
+        """
+        The function first reads the spreadsheet file containing item codes,
+        names (COICOP),
+        and related products with their links, then parse the source information (
+        e.g., Migros, A101, etc.)
+        and save the product's information as ItemRecord. It returns a list of
+        ItemRecords.
 
-        Note: Only works with the first sheet of an Excel file.
 
         Args:
-            file_path: File path of the Excel file that includes the products
-            information and their links/
+            file_path (str): An Excel file path or  a Google SpreadSheet URL.
 
-        Returns: List of TurkstatItemRecord
+        Returns (list): List of ItemRecords.
+
+        Note: Only works with the first sheet of a spreadsheet file.
 
         """
         file_path = CrawlerManager.format_spreadsheet_path(file_path)
@@ -211,22 +231,31 @@ class CrawlerManager:
         path="/",
         output_fn="inflation-crawl.jsonl",
     ):
-        output_fn_full_path = os.path.join(path, output_fn)
-        total_saved = 0
 
-        with open(output_fn_full_path, "w") as file:
-            logger.info(f"Total of {len(records)} records will be processed.")
+        date_stamp_output_file = datetime.now().strftime("%Y%m%d%H%M%S")
+        output_fn_full_path = os.path.join(
+            path, f"{output_fn}-{date_stamp_output_file}.jsonl.gz"
+        )
+        total_saved = 0
+        total = len(records)
+
+        with gzip.open(output_fn_full_path, "wt") as file:
+            logger.info(f"Total of {total} records will be processed.")
             for record in records:
                 d = self.crawlers[record.source.lower()].crawl(record)
-
-                data = json.dumps(d)
-                file.write(f"{data}\n")
-                total_saved += 1
+                if d is not None:
+                    data = json.dumps(d)
+                    file.write(f"{data}\n")
+                    total_saved += 1
+                else:
+                    logger.warning(f"Skipping {record}...")
 
             logger.info(
-                f"Total of {total_saved}/{len(records)} records are saved to "
+                f"Total of {total_saved}/{total} records are saved to "
                 f"{output_fn_full_path}"
             )
+            if total_saved != total:
+                logger.warning(f"{total - total_saved} records skipped.")
 
         return output_fn_full_path
 

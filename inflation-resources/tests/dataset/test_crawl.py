@@ -1,5 +1,5 @@
 import json
-
+import gzip
 import pytest
 import tempfile
 import os
@@ -8,7 +8,7 @@ from unittest import mock
 from pathlib import Path
 from inflation.dataset.crawl import CrawlerManager
 from inflation.dataset.crawl import ItemRecord
-from inflation.dataset.reader import InflationJSONA101DatasetReader
+from inflation.dataset.parse import A101Parser
 from inflation.dataset.crawl import A101Crawler
 from inflation.dataset.crawl import MigrosCrawler
 
@@ -26,14 +26,20 @@ RECORDS = {
         ItemRecord("123", "pirinc", "ovadan", "http://www.a101.com", "a101")
     ],
     "migros": [
-        ItemRecord("505", "sut", "pinar", "http://www.migros.com", "migros")
+        ItemRecord(
+            "505",
+            "sut",
+            "pinar",
+            "https://www.migros.com.tr/pinar-organik-sut-1-l-p-a822f9",
+            "migros",
+        )
     ],
 }
 
 
 @pytest.fixture(scope="module")
 def inflation_data_reader():
-    return InflationJSONA101DatasetReader()
+    return A101Parser()
 
 
 @pytest.fixture(scope="module")
@@ -98,18 +104,20 @@ def test_start_crawling_check_output_for_a101(
             if os.path.isfile(os.path.join(tmpdirname, entry)):
                 files.append(entry)
         assert len(files) == 1
-        f = open(test_data_fp)
+        f = gzip.open(test_data_fp)
         test_data = json.load(f)
         assert test_data["item_code"] == "123"
         assert test_data["item_name"] == "pirinc"
         assert test_data["product_name"] == "ovadan"
         assert test_data["source"] == "a101"
-        assert len(test_data["text"]) == 31721
+        assert len(test_data["text"]) == 282375
 
 
 @mock.patch("inflation.dataset.crawl.PageCrawlerRobot.get_page")
 def test_start_crawling_check_output_for_migros(
-    mock_get_page, crawler_manager, html_test_file_for_migros
+    mock_get_page,
+    crawler_manager,
+    html_test_file_for_migros,
 ):
     """
     (1) It tests the Crawler's start crawling method using Migros case, creates output file (a json).
@@ -127,12 +135,10 @@ def test_start_crawling_check_output_for_migros(
             if os.path.isfile(os.path.join(tmpdirname, entry)):
                 files.append(entry)
         assert len(files) == 1
-        f = open(test_data_fp)
+        f = gzip.open(test_data_fp)
         test_data = json.load(f)
         assert test_data["item_code"] == "505"
         assert test_data["item_name"] == "sut"
         assert test_data["product_name"] == "pinar"
-        assert (
-            test_data["source"] == "migros"
-        )  # Q: bu niye ve nasil a101 donuyor
+        assert test_data["source"] == "migros"
         assert len(test_data["text"]) == 6563
