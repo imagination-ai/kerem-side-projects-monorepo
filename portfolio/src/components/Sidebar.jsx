@@ -19,7 +19,7 @@ export default function Sidebar() {
             alt="Kerem"
           />
           <CardContent>
-            <Typography marginBottom={2}>
+            <Typography marginBottom={2} fontFamily="Lora; serif">
               Currently, I am working on a stealth mode startup. Previously, I
               worked at Kadir Has University as a research assistant where I got
               my master's degree.
@@ -39,9 +39,7 @@ export default function Sidebar() {
             </Typography>
 
             <Typography variant="body2" color="text.secondary">
-              Lorem, ipsum dolor sit amet consectetur adipisicing elit. Veniam
-              totam consequatur sunt ab tempore. Animi, ipsum consequatur. Odio,
-              beatae.
+              More stuff will come here.
             </Typography>
           </CardContent>
         </CardActionArea>

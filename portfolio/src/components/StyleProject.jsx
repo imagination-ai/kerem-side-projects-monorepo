@@ -2,18 +2,25 @@ import React, { useState } from 'react'
 import { useParams } from 'react-router-dom'
 import StyleClient from '../client/style_client'
 import Form from 'react-bootstrap/Form'
-import 'bootstrap/dist/css/bootstrap.min.css'
-import Button from 'react-bootstrap/Button'
+import Button from '@mui/material/Button'
 import Table from 'react-bootstrap/Table'
+
+import Grid from '@mui/material/Grid'
+import Box from '@mui/material/Box'
+import Typography from '@mui/material/Typography'
+import {
+  FormControlLabel,
+  FormLabel,
+  Radio,
+  RadioGroup,
+  TextField,
+} from '@mui/material'
+import ProjectWithCode from './ProjectWithCode'
 
 const client = new StyleClient(
   process.env.REACT_APP_STYLE_HOST || 'localhost',
   process.env.REACT_APP_STYLE_PORT || '8080',
 )
-
-// export function getProject (index) {
-//   return projects[index]
-// }
 
 export default function StyleProject(props) {
   let params = useParams()
@@ -58,74 +65,86 @@ export default function StyleProject(props) {
   }
 
   return (
-    <div>
-      <h1>{props.project.title}</h1>
-      <div>
-        <br></br>
-        <i> {props.project.description}</i>
-      </div>
+    <ProjectWithCode
+      project={props.project}
+      text={` More to come.`}
+      date="2022, March 3"
+      code={
+        <Grid
+          item
+          xs={12}
+          md={4}
+          style={{
+            position: 'sticky',
+            top: '0',
+            height: 'fit-content',
+            display: 'flex',
+            flexDirection: 'column',
+          }}
+        >
+          <Typography variant="h5" height="68.5px">
+            You can try by yourself!
+          </Typography>
 
-      <br></br>
+          <Table striped bordered hover>
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Author</th>
+                <th>Probability</th>
+              </tr>
+            </thead>
+            {predictionToTable(predictions)}
+          </Table>
 
-      <p>
-        What we do In this project, we created a few models with different sizes
-        each of which take text as input, and returns a list of of authors. The
-        bigger the probability, the closer the style of the corresponding
-        author. Currently, we return only the <b>top 3 authors</b>.
-      </p>
-      <p>
-        <b>Text:</b> "{inputField.text}"
-      </p>
-      <p>
-        <b>Model Name:</b> "{inputField.model_name}"
-      </p>
+          <Form>
+            <Box
+              component="form"
+              sx={{
+                '& > :not(style)': { m: 1, width: '25ch' },
+              }}
+              noValidate
+              autoComplete="off"
+            >
+              <TextField
+                required
+                multiline={true}
+                id="outlined-uncontrolled"
+                name="text"
+                label="Jot down here"
+                value={inputField.text}
+                onChange={inputsHandler}
+              />
+            </Box>
 
-      <Table striped bordered hover>
-        <thead>
-          <tr>
-            <th>#</th>
-            <th>Author</th>
-            <th>Probability</th>
-          </tr>
-        </thead>
-        {predictionToTable(predictions)}
-      </Table>
+            <br></br>
 
-      <br></br>
+            <FormLabel id="demo-radio-buttons-group-label">Gender</FormLabel>
+            <RadioGroup
+              aria-labelledby="demo-radio-buttons-group-label"
+              defaultValue="mock"
+              name="model_name"
+            >
+              <FormControlLabel
+                value="small"
+                control={<Radio />}
+                label="Small Model"
+                onChange={inputsHandler}
+              />
+              <FormControlLabel
+                value="mock"
+                control={<Radio />}
+                label="Mock Model"
+                onChange={inputsHandler}
+              />
+            </RadioGroup>
 
-      <Form>
-        <Form.Group className="mb-3" controlId="formBasicEmail">
-          <Form.Label>
-            Jot down or copy some text. We can tell you wrote this!
-          </Form.Label>
-          <Form.Control
-            // type='email'
-            name="text"
-            value={inputField.text}
-            onChange={inputsHandler}
-            placeholder="It was the best of times, it was the worst of times..."
-          />
-          <Form.Text className="text-muted">
-            Copy or write some snippet to figure out who would be the author...
-          </Form.Text>
-        </Form.Group>
-
-        <Form.Group className="mb-3" controlId="formBasicPassword">
-          <Form.Select
-            aria-label="Default select example"
-            name="model_name"
-            value={inputField.model_name}
-            onChange={inputsHandler}
-          >
-            <option value="small">small-model</option>
-            <option value="mock">mock-model</option>
-          </Form.Select>
-        </Form.Group>
-
-        <Button variant="primary" onClick={handlePredictions}>
-          Submit
-        </Button>
-      </Form>
-    </div>
+            <Button variant="contained" onClick={handlePredictions}>
+              Guess who I am!
+            </Button>
+          </Form>
+        </Grid>
+      }
+    ></ProjectWithCode>
   )
 }

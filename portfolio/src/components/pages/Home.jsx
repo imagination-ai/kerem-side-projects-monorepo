@@ -7,25 +7,34 @@ import Projects from '../Projects/Projects'
 
 export default function Home() {
   return (
-    <Box sx={{ flexGrow: 1 }} p="10px">
+    <Box sx={{ flex: 1 }}>
       <Grid container spacing={1}>
         <Grid item xs={12} justifyContent={'center'}>
           <Box>
-            <Typography variant="h5" align="center" color="textPrimary">
+            <Typography
+              variant="h5"
+              align="center"
+              color="textPrimary"
+              fontFamily="Lora; serif"
+            >
               Economics | Data Science | Programming
             </Typography>
-            <Typography variant="h2" align="center" color="textPrimary">
+            <Typography
+              variant="h2"
+              align="center"
+              color="textPrimary"
+              fontFamily="Lora; serif"
+              fontStyle="italic"
+            >
               Porfolio
             </Typography>
           </Box>
         </Grid>
         <Grid item xs={12} md={9}>
           <Header></Header>
-
           <Projects />
         </Grid>
-
-        <Grid item xs={12} md={2.9}>
+        <Grid item xs={12} md={3}>
           <Sidebar></Sidebar>
         </Grid>
       </Grid>

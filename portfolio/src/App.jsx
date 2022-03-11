@@ -1,17 +1,28 @@
 import React, { Component } from 'react'
 import { Route, Routes } from 'react-router-dom'
-import Projects from './components/Projects/Projects'
 import ResponsiveAppBar from './components/ResponsiveAppBar'
 import StyleProject from './components/StyleProject'
 import projects from './lib/utils'
 import Typography from '@mui/material/Typography'
 import Home from './components/pages/Home'
+import ScrollToTop from './components/ScrollToTop'
+import Footer from './components/Footer'
 
 const Layout = (props) => {
   return (
     <>
       <ResponsiveAppBar></ResponsiveAppBar>
-      {props.child}
+      <div
+        style={{
+          flexGrow: 1,
+          maxWidth: '1600px',
+          width: '80%',
+          margin: '1em auto',
+        }}
+      >
+        {props.child}
+      </div>
+      <Footer></Footer>
     </>
   )
 }
@@ -21,23 +32,18 @@ export default class App extends Component {
     let routes = (
       <Routes>
         <Route path="/" element={<Home></Home>} />
-        <Route path="/projects" element={<Projects />} />
-        <Route
-          path={`/projects/0`}
-          element={<StyleProject project={projects[0]} />}
-        />
         <Route
           path={`/projects/1`}
+          element={<StyleProject project={projects[0]} />}
+        />
+        {/* <Route
+          path={`/projects/2`}
           element={<StyleProject project={projects[1]} />}
         />
         <Route
-          path={`/projects/2`}
-          element={<StyleProject project={projects[2]} />}
-        />
-        <Route
           path={`/projects/3`}
-          element={<StyleProject project={projects[3]} />}
-        />
+          element={<StyleProject project={projects[2]} />}
+        /> */}
         <Route
           path="/about"
           element={
@@ -56,6 +62,10 @@ export default class App extends Component {
         />
       </Routes>
     )
-    return <Layout child={routes}></Layout>
+    return (
+      <ScrollToTop>
+        <Layout child={routes}></Layout>
+      </ScrollToTop>
+    )
   }
 }

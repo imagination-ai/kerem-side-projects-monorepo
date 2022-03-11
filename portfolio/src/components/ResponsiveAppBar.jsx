@@ -1,4 +1,3 @@
-import FacebookIcon from '@mui/icons-material/Facebook'
 import * as React from 'react'
 import AppBar from '@mui/material/AppBar'
 import Box from '@mui/material/Box'
@@ -10,6 +9,7 @@ import MenuIcon from '@mui/icons-material/Menu'
 import Container from '@mui/material/Container'
 import Button from '@mui/material/Button'
 import Link from '@mui/material/Link'
+import { Link as RouterLink } from 'react-router-dom'
 
 import MenuItem from '@mui/material/MenuItem'
 import TwitterIcon from '@mui/icons-material/Twitter'
@@ -40,15 +40,22 @@ const ResponsiveAppBar = () => {
     <AppBar position="sticky">
       <Container maxWidth="xl">
         <Toolbar disableGutters sx={{ justifyContent: 'space-between' }}>
-          <Typography
-            variant="h6"
-            noWrap
-            component="div"
-            sx={{ mr: 2, display: { xs: 'none', md: 'flex' } }}
+          <RouterLink
+            to="/"
+            style={{
+              textDecoration: 'none',
+              color: 'white',
+            }}
           >
-            Kerem - Blog
-          </Typography>
-
+            <Typography
+              variant="h6"
+              noWrap
+              component="div"
+              sx={{ mr: 2, display: { xs: 'none', md: 'flex' } }}
+            >
+              Kerem - Blog
+            </Typography>
+          </RouterLink>
           <Box
             sx={{
               flexGrow: 1,
@@ -84,19 +91,28 @@ const ResponsiveAppBar = () => {
               }}
             >
               <MenuItem key={0} onClick={handleCloseNavMenu}>
-                <Link to="/projects">
-                  <Typography textAlign="center">Projects</Typography>
-                </Link>
+                <RouterLink to="/">
+                  <Typography textAlign="center">Home</Typography>
+                </RouterLink>
               </MenuItem>
             </Menu>
           </Box>
+
           <Typography
             variant="h6"
             noWrap
             component="div"
             sx={{ flexGrow: 1, display: { xs: 'flex', md: 'none' } }}
           >
-            Blog
+            <RouterLink
+              to="/"
+              style={{
+                textDecoration: 'none',
+                color: 'white',
+              }}
+            >
+              Kerem - Blog
+            </RouterLink>
           </Typography>
           <Box
             sx={{
