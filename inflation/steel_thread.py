@@ -1,8 +1,8 @@
 import logging
 
 from common.customized_logging import configure_logging
-from dataset.crawl import A101Crawler, CrawlerManager, MigrosCrawler
-from dataset.parse import A101Parser, MigrosParser, ParserManager
+from inflation.dataset.crawl import A101Crawler, CrawlerManager, MigrosCrawler
+from inflation.dataset.parse import A101Parser, MigrosParser, ParserManager
 
 configure_logging()
 logger = logging.getLogger(__name__)
@@ -36,9 +36,9 @@ def run():
 
     parsers = {"a101": A101Parser(), "migros": MigrosParser()}
     pm = ParserManager(parsers)
-    dataset = pm.start_parsing_from_drive(crawl_output_fn)
+    parser_output_path = pm.start_parsing(crawl_output_fn, args.path)
 
-    print(f"Parsing done. Data saved {dataset.dataset}")
+    print(f"Parsing done. Data saved {parser_output_path}")
 
 
 if __name__ == "__main__":

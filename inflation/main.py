@@ -82,35 +82,20 @@ def fetch_inflation_data(excel_path, output_path, filename):
 
 
 def parse_inflation_data(source_filename, output_file_path=PARSER_OUTPUT_DIR):
-    parsed_inflation_data_fn = pm.start_parsing(
-        source_filename, output_file_path, mode="google-storage"
-    )
-    logger.info(f"{source_filename} is parsed successfully.")
+
+    with tempfile.NamedTemporaryFile() as tmpfile:
+        crawler_client.download(source_filename, tmpfile)
+
+        parsed_inflation_data_fn = pm.start_parsing(
+            tmpfile.name, output_file_path
+        )
+        logger.info(f"{source_filename} parsed successfully to {tmpfile.name}.")
 
     basename = os.path.basename(parsed_inflation_data_fn)
     parser_client.upload(parsed_inflation_data_fn, basename)
     logger.info(
         f"Uploading {basename} InflationDataset object to {PARSER_BUCKET}/{basename}"
     )
-
-    def start_parsing_from_google_storage(
-        self,
-        source_filename: str,
-        output_file_path: str,
-    ):
-        """
-
-        Args:
-            source_filename (str): The source filename in the Google Storage.
-            output_file_path (str): The path to save InflationDataset object.
-
-        Returns:
-
-        """
-        with tempfile.TemporaryDirectory() as tmpdirname:
-            self.crawler_client.download(source_filename, tmpdirname)  #
-            parsed_data_fp = os.path.join(tmpdirname, source_filename)
-            return self._start_parsing(parsed_data_fp, output_file_path)
 
 
 def collect_db_stats(db_path):

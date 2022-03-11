@@ -3,7 +3,6 @@ import datetime
 import logging
 import _pickle as cPickle
 import os
-import tempfile
 
 import pandas as pd
 import gzip
