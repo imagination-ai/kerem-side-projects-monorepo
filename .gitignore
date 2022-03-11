@@ -138,3 +138,5 @@ portfolio/portfolio.sln
 portfolio/portfolio
 portfolio/node_modules/
 portfolio/src_burger/
+
+**.gz

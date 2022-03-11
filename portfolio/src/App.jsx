@@ -6,6 +6,7 @@ import projects from './lib/utils'
 import Typography from '@mui/material/Typography'
 import Home from './components/pages/Home'
 import ScrollToTop from './components/ScrollToTop'
+import Footer from './components/Footer'
 
 const Layout = (props) => {
   return (
@@ -16,11 +17,12 @@ const Layout = (props) => {
           flexGrow: 1,
           maxWidth: '1600px',
           width: '80%',
-          margin: '0 auto',
+          margin: '1em auto',
         }}
       >
         {props.child}
       </div>
+      <Footer></Footer>
     </>
   )
 }

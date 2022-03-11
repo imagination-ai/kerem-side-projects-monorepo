@@ -11,10 +11,21 @@ export default function Home() {
       <Grid container spacing={1}>
         <Grid item xs={12} justifyContent={'center'}>
           <Box>
-            <Typography variant="h5" align="center" color="textPrimary">
+            <Typography
+              variant="h5"
+              align="center"
+              color="textPrimary"
+              fontFamily="Lora; serif"
+            >
               Economics | Data Science | Programming
             </Typography>
-            <Typography variant="h2" align="center" color="textPrimary">
+            <Typography
+              variant="h2"
+              align="center"
+              color="textPrimary"
+              fontFamily="Lora; serif"
+              fontStyle="italic"
+            >
               Porfolio
             </Typography>
           </Box>
