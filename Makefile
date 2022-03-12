@@ -34,6 +34,9 @@ crawl:
 #inflation/dataset/%.json.gz:
 #	python -m inflation.dataset_download --url ${URL} --output-fn $@ --type json --limit 1 # Update limit in the long run
 
+train-model-small:
+	APP_RESOURCE_DIR=style-resources $(RUN) python -m style.train.classifier_trainer --model-name small --train-data-size 200
+
 clean:
 	rm -rf $(ENV)
 

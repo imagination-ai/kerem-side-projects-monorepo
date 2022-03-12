@@ -12,11 +12,11 @@ FILE_PATH_BOOK_DS = BASE_PATH / "datasets/book_ds"
 FILE_PATH_MOCK_DS = BASE_PATH / "datasets/mock_ds"
 
 # Constants for utils.author_catalog
-CATALOG_FILE_PATH = BASE_PATH / "resources" / "pg_catalog.csv"
-LOG_FILE_PATH = BASE_PATH / "resources" / "log.txt"
+CATALOG_FILE_PATH = BASE_PATH / "resources/pg_catalog.csv"
+LOG_FILE_PATH = BASE_PATH / "resources/log.txt"
 
 # Constants for tests.style.crawler.test_crawler
-TEST_DATA_FILENAME = BASE_PATH / "resources" / "test_page.html"
+TEST_DATA_FILENAME = BASE_PATH / "resources/test_page.html"
 
 # Constants for style.train.classifier_trainer
 MODEL_EXPORT_PATH = BASE_PATH / "models/"
