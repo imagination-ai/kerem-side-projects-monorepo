@@ -120,7 +120,7 @@ export default function StyleProject(props) {
               />
             </Box>
 
-            <FormLabel id="demo-radio-buttons-group-label">Gender</FormLabel>
+            <FormLabel id="demo-radio-buttons-group-label">Model Names</FormLabel>
             <RadioGroup
               aria-labelledby="demo-radio-buttons-group-label"
               defaultValue="mock"

@@ -66,7 +66,8 @@ export default function ProjectWithCode(props) {
 
                 <Stack
                   direction="row"
-                  style={{ flexWrap: 'wrap', gap: '0.5rem' }}
+                  divider={<Divider orientation="vertical" flexItem />}
+                  spacing={1}
                 >
                   {props.project.tags.map((tag, i) => (
                     <Chip label={tag} key={i} p={2} color="primary" />

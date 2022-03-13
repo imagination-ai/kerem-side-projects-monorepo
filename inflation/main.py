@@ -27,7 +27,7 @@ app = FastAPI()
 cm = CrawlerManager(CRAWLERS)
 crawler_client = GoogleStorageClient(bucket_name=CRAWLER_BUCKET)
 parser_client = GoogleStorageClient(bucket_name=PARSER_BUCKET)
-pm = ParserManager(PARSERS, crawler_client)
+pm = ParserManager(PARSERS)
 
 OUTPUT_PATH_DIR = (
     "/build/data"  # Q: Eger build diye verirsek bunu local'de nasil calisacak?

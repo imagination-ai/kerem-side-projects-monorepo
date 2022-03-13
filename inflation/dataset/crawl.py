@@ -242,7 +242,10 @@ class CrawlerManager:
         with gzip.open(output_fn_full_path, "wt") as file:
             logger.info(f"Total of {total} records will be processed.")
             for record in records:
-                d = self.crawlers[record.source.lower()].crawl(record)
+                d = None
+                crawler = self.crawlers.get(record.source.lower())
+                if crawler is not None:
+                    d = crawler.crawl(record)
                 if d is not None:
                     data = json.dumps(d)
                     file.write(f"{data}\n")
