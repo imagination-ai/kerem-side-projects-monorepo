@@ -1,10 +1,10 @@
-import { Grid, Box, Typography, Container } from '@mui/material'
+import { Grid, Box, Typography } from '@mui/material'
 
 export default function Footer() {
   return (
     <footer>
       <Box
-        marginTop={'3em'}
+        marginTop={'auto'}
         spacing={1}
         p={'1em'}
         sx={{

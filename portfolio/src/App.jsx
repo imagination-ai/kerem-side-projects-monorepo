@@ -10,7 +10,7 @@ import Footer from './components/Footer'
 
 const Layout = (props) => {
   return (
-    <>
+    <div style={{ height: '100vh', display: 'flex', flexDirection: 'column' }}>
       <ResponsiveAppBar></ResponsiveAppBar>
       <div
         style={{
@@ -23,7 +23,7 @@ const Layout = (props) => {
         {props.child}
       </div>
       <Footer></Footer>
-    </>
+    </div>
   )
 }
 

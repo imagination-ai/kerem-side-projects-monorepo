@@ -1,5 +1,4 @@
 import React, { useState } from 'react'
-import { useParams } from 'react-router-dom'
 import StyleClient from '../client/style_client'
 import Form from 'react-bootstrap/Form'
 import Button from '@mui/material/Button'
@@ -16,16 +15,20 @@ import {
   TextField,
 } from '@mui/material'
 import ProjectWithCode from './ProjectWithCode'
+import ModelDetailsDialog from './ModelDetailsDialog'
 
 const client = new StyleClient(
   process.env.REACT_APP_STYLE_HOST || 'localhost',
   process.env.REACT_APP_STYLE_PORT || '8080',
 )
 
-export default function StyleProject(props) {
-  let params = useParams()
-  // let project = getProject(parseInt(params.projectId, 10))
+let modelDetails = {
+  mock:
+    'This model is just a mock model. It is not a real model and always returns the same thing.',
+  small: 'This model is based on Logistic Regression and TFIDFVectorizer. ',
+}
 
+export default function StyleProject(props) {
   const [predictions, setPredictions] = useState({})
   const [inputField, setInputField] = useState({
     text: '',
@@ -117,8 +120,6 @@ export default function StyleProject(props) {
               />
             </Box>
 
-            <br></br>
-
             <FormLabel id="demo-radio-buttons-group-label">Gender</FormLabel>
             <RadioGroup
               aria-labelledby="demo-radio-buttons-group-label"
@@ -139,9 +140,15 @@ export default function StyleProject(props) {
               />
             </RadioGroup>
 
-            <Button variant="contained" onClick={handlePredictions}>
-              Guess who I am!
-            </Button>
+            <Box style={{ display: 'flex', gap: '1rem' }}>
+              <Button variant="contained" onClick={handlePredictions}>
+                Guess who I am!
+              </Button>
+              <ModelDetailsDialog
+                model_name={inputField.model_name}
+                text={modelDetails[inputField.model_name]}
+              />
+            </Box>
           </Form>
         </Grid>
       }
