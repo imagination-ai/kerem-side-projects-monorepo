@@ -100,29 +100,22 @@ class ParserManager:
     def __init__(self, parsers: dict):
         self.parsers = parsers
 
-    def start_parsing(self, data_file_path: str, output_file_path: str):
-
+    def start_parsing(
+        self, data_file_path: str, output_file_path: str, filename: str
+    ):
         records = []
-
         with ParserManager.open(data_file_path, mode="rt") as file:
             total_pages = 0
             item_pages = 0
             for line in file:
                 line = json.loads(line)
                 total_pages += 1
-
                 records.append(self.parsers[line["source"].lower()].parse(line))
-
                 item_pages += 1
-        logger.info(
-            f"Parsing is done: {item_pages}/{total_pages} parsed to {data_file_path}"
-        )
 
-        date_stamp_output_file = datetime.datetime.now().strftime(
-            "%Y%m%d%H%M%S"
-        )
-        output_fn_full_path = os.path.join(
-            output_file_path, f"parsed-inflation-data-{date_stamp_output_file}"
+        output_fn_full_path = os.path.join(output_file_path, filename)
+        logger.info(
+            f"Parsing is done: {item_pages}/{total_pages} parsed to {output_fn_full_path}"
         )
         return InflationDataset(records).save(output_fn_full_path)
 
@@ -139,6 +132,7 @@ class ParserManager:
         """
 
         func = None
+        logger.info(data_file_path)
         if data_file_path.endswith(".gz"):
             func = gzip.open
         elif data_file_path.endswith(".json") or data_file_path.endswith(

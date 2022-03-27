@@ -48,4 +48,3 @@ def configure_logging():
     if not CONFIGURED:
         logging.config.dictConfig(config)
         CONFIGURED = True
-        print("Configured")

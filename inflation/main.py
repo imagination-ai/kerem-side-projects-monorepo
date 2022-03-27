@@ -13,7 +13,6 @@ from inflation.config import settings
 from inflation.dataset.crawl import CrawlerManager, A101Crawler, MigrosCrawler
 from inflation.dataset.parse import ParserManager, A101Parser, MigrosParser
 
-
 CRAWLER_BUCKET = os.getenv("CRAWLER_BUCKET", "inflation-project-crawler-output")
 PARSER_BUCKET = os.getenv("PARSER_BUCKET", "inflation-project-parser-output")
 
@@ -81,20 +80,24 @@ def fetch_inflation_data(excel_path, output_path, filename):
     logger.info(f"Crawling done for {excel_path}: {CRAWLER_BUCKET}/{basename}")
 
 
-def parse_inflation_data(source_filename, output_file_path=PARSER_OUTPUT_DIR):
-
-    with tempfile.NamedTemporaryFile() as tmpfile:
+def parse_inflation_data(source_filename, output_file_path, filename):
+    _, suffix = os.path.splitext(source_filename)
+    with tempfile.NamedTemporaryFile(suffix=suffix) as tmpfile:
         crawler_client.download(source_filename, tmpfile)
+        tmpfile.flush()
 
         parsed_inflation_data_fn = pm.start_parsing(
-            tmpfile.name, output_file_path
+            tmpfile.name, output_file_path, filename
         )
-        logger.info(f"{source_filename} parsed successfully to {tmpfile.name}.")
+        logger.info(
+            f"{source_filename} parsed successfully to {parsed_inflation_data_fn}."
+        )
 
     basename = os.path.basename(parsed_inflation_data_fn)
     parser_client.upload(parsed_inflation_data_fn, basename)
     logger.info(
-        f"Uploading {basename} InflationDataset object to {PARSER_BUCKET}/{basename}"
+        f"Uploading {parsed_inflation_data_fn} InflationDataset object to "
+        f"{PARSER_BUCKET}/{basename}"
     )
 
 
@@ -122,41 +125,47 @@ async def index():
     return {"success": True, "message": "Inflation Downloader is working!"}
 
 
-@app.get("/CrawlAsync", tags=["Crawl"])
+@app.get("/Crawl", tags=["Crawl"])
 async def fetch_data_async(
     background_tasks: BackgroundTasks,
     excel_path="https://docs.google.com/spreadsheets/d"
     "/1Xv5UOTpzDPELdtk8JW1oDWbjpsEexAKKLzgzZBB-2vw/edit#gid=0",
 ):
-    filename = f"{datetime.now().strftime('%Y-%m-%d')}.crawl.jsonl"
+    filename = f"{datetime.now().strftime('%Y-%m-%d')}.crawl.jsonl.gz"
     background_tasks.add_task(
         fetch_inflation_data, excel_path, CRAWLER_OUTPUT_DIR, filename
     )
     return {
         "success": True,
         "message": f"{CRAWLER_BUCKET}/{filename} is preparing.",
+        "data": {"bucket": CRAWLER_BUCKET, "filename": filename},
     }
 
 
-@app.get("/Crawl", tags=["Crawl"])
-async def fetch_data(
-    excel_path="https://docs.google.com/spreadsheets/d"
-    "/1Xv5UOTpzDPELdtk8JW1oDWbjpsEexAKKLzgzZBB-2vw/edit#gid=0",
-):
-    filename = f"{datetime.now().strftime('%Y-%m-%d')}.crawl.jsonl"
-    fetch_inflation_data(excel_path, CRAWLER_OUTPUT_DIR, filename)
-    return {
-        "success": True,
-        "message": f"{CRAWLER_BUCKET}/{filename} is preparing.",
-    }
+# @app.get("/Crawl", tags=["Crawl"])
+# async def fetch_data(
+#         excel_path="https://docs.google.com/spreadsheets/d"
+#                    "/1Xv5UOTpzDPELdtk8JW1oDWbjpsEexAKKLzgzZBB-2vw/edit#gid=0",
+# ):
+#     filename = f"{datetime.now().strftime('%Y-%m-%d')}.crawl.jsonl"
+#     fetch_inflation_data(excel_path, CRAWLER_OUTPUT_DIR, filename)
+#     return {
+#         "success": True,
+#         "message": f"{CRAWLER_BUCKET}/{filename} is preparing.",
+#     }
 
 
 @app.get("/Parse", tags=["Parse"])
-async def parse_data(source_filename):
-    parse_inflation_data(source_filename, PARSER_OUTPUT_DIR)
+async def parse_data(background_tasks: BackgroundTasks, source_filename):
+    filename = f"{datetime.now().strftime('%Y-%m-%d')}.parse.jsonl.gz"
+    background_tasks.add_task(
+        parse_inflation_data, source_filename, PARSER_OUTPUT_DIR, filename
+    )
     return {
         "success": True,
-        "message": f"{PARSER_BUCKET}/{source_filename} is preparing.",
+        "message": f"{PARSER_BUCKET}/{source_filename} is preparing. Output will be "
+        f"{filename}",
+        "data": {"bucket": PARSER_BUCKET, "filename": filename},
     }
 
 

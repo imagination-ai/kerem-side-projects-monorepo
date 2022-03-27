@@ -232,10 +232,7 @@ class CrawlerManager:
         output_fn="inflation-crawl.jsonl",
     ):
 
-        date_stamp_output_file = datetime.now().strftime("%Y%m%d%H%M%S")
-        output_fn_full_path = os.path.join(
-            path, f"{output_fn}-{date_stamp_output_file}.jsonl.gz"
-        )
+        output_fn_full_path = os.path.join(path, output_fn)
         total_saved = 0
         total = len(records)
 

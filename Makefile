@@ -46,3 +46,6 @@ format:
 
 steel-thread:
 	$(RUN) python -m inflation.steel_thread --excel-path https://docs.google.com/spreadsheets/d/1_hKfQJ2DEF4TAHH3pxFCYcBgJXBYG9LZZElnF4Yf04A/edit#gid=0 --path .
+
+e2e-test:
+	bash e2e/e2e-inflation.sh

@@ -38,6 +38,7 @@ services:
     environment:
       - STORAGE_EMULATOR_HOST=http://mock-cloud-storage:4443
       - CRAWLER_BUCKET=test-bucket
+      - PARSER_BUCKET=test-bucket
     depends_on:
       - mock-cloud-storage
     entrypoint: ["python", "/applications/inflation/main.py"]

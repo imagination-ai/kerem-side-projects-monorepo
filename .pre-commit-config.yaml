@@ -37,3 +37,13 @@ repos:
         types: [python]
         stages: [push]
         verbose: true
+-   repo: local
+    hooks:
+    -   id: e2e test
+        name: tests
+        entry: bash -c 'make e2e-test'
+        language: system
+        pass_filenames: false
+        types: [python]
+        stages: [push]
+        verbose: true

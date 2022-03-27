@@ -119,7 +119,9 @@ def test_a101_parse_product(
     ]
     with tempfile.TemporaryDirectory() as tmpdirname:
         parsed_data_fp = parser_manager.start_parsing(
-            str(INFLATION_RESOURCES_PATH / TEST_FILE_PATHS["a101"]), tmpdirname
+            str(INFLATION_RESOURCES_PATH / TEST_FILE_PATHS["a101"]),
+            tmpdirname,
+            "sample-filename.json.gz",
         )
 
         parsed_dataset = InflationDataset.read(parsed_data_fp)
@@ -189,6 +191,7 @@ def test_migros_parse_products(
         parsed_data_fp = parser_manager.start_parsing(
             str(INFLATION_RESOURCES_PATH / TEST_FILE_PATHS["migros"]),
             tmpdirname,
+            "sample-filename.json.gz",
         )
 
         parsed_dataset = InflationDataset.read(parsed_data_fp)
