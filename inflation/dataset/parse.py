@@ -132,7 +132,6 @@ class ParserManager:
         """
 
         func = None
-        logger.info(data_file_path)
         if data_file_path.endswith(".gz"):
             func = gzip.open
         elif data_file_path.endswith(".json") or data_file_path.endswith(

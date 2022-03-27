@@ -142,19 +142,6 @@ async def fetch_data_async(
     }
 
 
-# @app.get("/Crawl", tags=["Crawl"])
-# async def fetch_data(
-#         excel_path="https://docs.google.com/spreadsheets/d"
-#                    "/1Xv5UOTpzDPELdtk8JW1oDWbjpsEexAKKLzgzZBB-2vw/edit#gid=0",
-# ):
-#     filename = f"{datetime.now().strftime('%Y-%m-%d')}.crawl.jsonl"
-#     fetch_inflation_data(excel_path, CRAWLER_OUTPUT_DIR, filename)
-#     return {
-#         "success": True,
-#         "message": f"{CRAWLER_BUCKET}/{filename} is preparing.",
-#     }
-
-
 @app.get("/Parse", tags=["Parse"])
 async def parse_data(background_tasks: BackgroundTasks, source_filename):
     filename = f"{datetime.now().strftime('%Y-%m-%d')}.parse.jsonl.gz"

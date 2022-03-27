@@ -29,8 +29,8 @@ repos:
         - -l 80
 -   repo: local
     hooks:
-    -   id: test for style
-        name: tests
+    -   id: pytest
+        name: pytest
         entry: bash -c 'make test'
         language: system
         pass_filenames: false
@@ -39,8 +39,8 @@ repos:
         verbose: true
 -   repo: local
     hooks:
-    -   id: e2e test
-        name: tests
+    -   id: e2e-test
+        name: end to end tests
         entry: bash -c 'make e2e-test'
         language: system
         pass_filenames: false
