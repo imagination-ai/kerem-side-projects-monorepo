@@ -158,6 +158,10 @@ class A101Crawler(Crawler):
     pass
 
 
+class CarrefourCrawler(Crawler):
+    pass
+
+
 class CrawlerManager:
     def __init__(self, crawlers: dict):
         self.crawlers = crawlers
@@ -276,7 +280,11 @@ def run():
     args = parser.parse_args()
     logger.info(f"{args}")
 
-    crawlers = {"a101": A101Crawler(), "migros": MigrosCrawler()}
+    crawlers = {
+        "a101": A101Crawler(),
+        "migros": MigrosCrawler(),
+        "carrefoursa": CarrefourCrawler(),
+    }
     cm = CrawlerManager(crawlers)
     records = cm.parse_excel_to_link_dataset(file_path=args.excel_path)
     cm.start_crawling(records, path=args.path)

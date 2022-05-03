@@ -11,14 +11,20 @@ from inflation.dataset.crawl import ItemRecord
 from inflation.dataset.parse import A101Parser
 from inflation.dataset.crawl import A101Crawler
 from inflation.dataset.crawl import MigrosCrawler
+from inflation.dataset.crawl import CarrefourCrawler
 
-CRAWLERS = {"a101": A101Crawler(), "migros": MigrosCrawler()}
+CRAWLERS = {
+    "a101": A101Crawler(),
+    "migros": MigrosCrawler(),
+    "carrefoursa": CarrefourCrawler(),
+}
 
 INFLATION_RESOURCES_PATH = Path(__file__).parents[2]
 
 TEST_PAGES_PATH = {
     "a101": "tests/data/pages/ovadan-pirinc-baldo-1000-g-a101.html",
     "migros": "tests/data/pages/pinar-organik-sut-1L-migros.html",
+    "carrefoursa": "tests/data/pages/carrefour-gonen-baldo-pirinc-carrefoursa.html",
 }
 
 RECORDS = {
@@ -32,6 +38,15 @@ RECORDS = {
             "pinar",
             "https://www.migros.com.tr/pinar-organik-sut-1-l-p-a822f9",
             "migros",
+        )
+    ],
+    "carrefoursa": [
+        ItemRecord(
+            "82",
+            "pirinc",
+            "carrefour",
+            "https://www.carrefoursa.com/carrefour-gonen-baldo-pirinc-1-kg-p-30165819",
+            "carrefoursa",
         )
     ],
 }
@@ -55,6 +70,14 @@ def html_test_file_for_migros():
 
     return codecs.open(
         INFLATION_RESOURCES_PATH / TEST_PAGES_PATH["migros"], "r"
+    ).read()
+
+
+@pytest.fixture(scope="module")
+def html_test_file_for_carrefour():
+
+    return codecs.open(
+        INFLATION_RESOURCES_PATH / TEST_PAGES_PATH["carrefoursa"], "r"
     ).read()
 
 
@@ -142,3 +165,30 @@ def test_start_crawling_check_output_for_migros(
         assert test_data["product_name"] == "pinar"
         assert test_data["source"] == "migros"
         assert len(test_data["text"]) == 6563
+
+
+@mock.patch("inflation.dataset.crawl.requests.get")
+def test_start_crawling_check_output_for_carrefour(
+    mock_requests_get, crawler_manager, html_test_file_for_carrefour
+):
+
+    mock_requests_get.return_value = mock.Mock(
+        status_code=200, text=html_test_file_for_carrefour
+    )
+
+    with tempfile.TemporaryDirectory() as tmpdirname:
+        test_data_fp = crawler_manager.start_crawling(
+            RECORDS["carrefoursa"], tmpdirname
+        )
+        files = []
+        for entry in os.listdir(tmpdirname):
+            if os.path.isfile(os.path.join(tmpdirname, entry)):
+                files.append(entry)
+        assert len(files) == 1
+        f = gzip.open(test_data_fp)
+        test_data = json.load(f)
+        assert test_data["item_code"] == "82"
+        assert test_data["item_name"] == "pirinc"
+        assert test_data["product_name"] == "carrefour"
+        assert test_data["source"] == "carrefoursa"
+        assert len(test_data["text"]) == 1315316

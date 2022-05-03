@@ -12,9 +12,11 @@ install: .venv requirements.txt
 	$(RUN) pip install -r requirements.txt
 
 install-dev: install-test
-	wget https://chromedriver.storage.googleapis.com/98.0.4758.102/chromedriver_mac64.zip
+	#wget https://chromedriver.storage.googleapis.com/98.0.4758.102/chromedriver_mac64.zip
+	wget https://chromedriver.storage.googleapis.com/101.0.4951.41/chromedriver_mac64.zip
 	unzip chromedriver_mac64.zip
 	mv chromedriver /usr/local/bin/chromedriver
+	rm chromedriver_mac64.zip
 
 	# prep for fake gcs
 	mkdir -p fake-gcs/$(GCS_BUCKET)
@@ -22,6 +24,7 @@ install-dev: install-test
 
 	$(RUN) pip install -r requirements-dev.txt
 	$(RUN) pre-commit install && pre-commit install -t pre-push
+	brew install httpie
 
 install-test: install
 	$(RUN) pip install -r requirements-test.txt
