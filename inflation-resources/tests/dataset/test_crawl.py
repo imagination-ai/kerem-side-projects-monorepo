@@ -191,4 +191,4 @@ def test_start_crawling_check_output_for_carrefour(
         assert test_data["item_name"] == "pirinc"
         assert test_data["product_name"] == "carrefour"
         assert test_data["source"] == "carrefoursa"
-        assert len(test_data["text"]) == 1315316
+        assert len(test_data["text"]) == 1315002
