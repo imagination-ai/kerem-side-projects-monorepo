@@ -2,8 +2,6 @@ import tempfile
 from datetime import datetime
 import logging
 import os
-import gzip
-import json
 
 from fastapi import BackgroundTasks, FastAPI
 
@@ -13,8 +11,6 @@ from inflation.config import settings
 from inflation.dataset.crawl import CrawlerManager, A101Crawler, MigrosCrawler
 from inflation.dataset.parse import ParserManager, A101Parser, MigrosParser
 
-CRAWLER_BUCKET = os.getenv("CRAWLER_BUCKET", "inflation-project-crawler-output")
-PARSER_BUCKET = os.getenv("PARSER_BUCKET", "inflation-project-parser-output")
 
 CRAWLERS = {"a101": A101Crawler(), "migros": MigrosCrawler()}
 PARSERS = {"a101": A101Parser(), "migros": MigrosParser()}
@@ -24,21 +20,19 @@ logger = logging.getLogger(__name__)
 
 app = FastAPI()
 cm = CrawlerManager(CRAWLERS)
-crawler_client = GoogleStorageClient(bucket_name=CRAWLER_BUCKET)
-parser_client = GoogleStorageClient(bucket_name=PARSER_BUCKET)
+crawler_client = GoogleStorageClient(bucket_name=settings.CRAWLER_BUCKET)
+parser_client = GoogleStorageClient(bucket_name=settings.PARSER_BUCKET)
 pm = ParserManager(PARSERS)
 
-OUTPUT_PATH_DIR = (
-    "/build/data"  # Q: Eger build diye verirsek bunu local'de nasil calisacak?
-)
+OUTPUT_PATH_DIR = "/build/data"
 CRAWLER_OUTPUT_DIR = f"{OUTPUT_PATH_DIR}/crawler"
 PARSER_OUTPUT_DIR = f"{OUTPUT_PATH_DIR}/parser"
 
 logger.info(
-    f"Starting the application with -- Crawlers:{CRAWLERS}, Bucket Name:{CRAWLER_BUCKET}"
+    f"Starting the application with -- Crawlers:{CRAWLERS}, Bucket Name:{settings.CRAWLER_BUCKET}"
 )
 logger.info(
-    f"Starting the application with -- Parsers:{PARSERS}, Bucket Name:{PARSER_BUCKET}"
+    f"Starting the application with -- Parsers:{PARSERS}, Bucket Name:{settings.PARSER_BUCKET}"
 )
 
 
@@ -74,10 +68,14 @@ def fetch_inflation_data(excel_path, output_path, filename):
     inflation_fn = cm.start_crawling(records, output_path, filename)
     basename = os.path.basename(inflation_fn)
 
-    logger.info(f"Uploading {inflation_fn} to {CRAWLER_BUCKET}/{basename}")
+    logger.info(
+        f"Uploading {inflation_fn} to {settings.CRAWLER_BUCKET}/{basename}"
+    )
 
     crawler_client.upload(inflation_fn, basename)
-    logger.info(f"Crawling done for {excel_path}: {CRAWLER_BUCKET}/{basename}")
+    logger.info(
+        f"Crawling done for {excel_path}: {settings.CRAWLER_BUCKET}/{basename}"
+    )
 
 
 def parse_inflation_data(source_filename, output_file_path, filename):
@@ -96,8 +94,8 @@ def parse_inflation_data(source_filename, output_file_path, filename):
     basename = os.path.basename(parsed_inflation_data_fn)
     parser_client.upload(parsed_inflation_data_fn, basename)
     logger.info(
-        f"Uploading {parsed_inflation_data_fn} InflationDataset object to "
-        f"{PARSER_BUCKET}/{basename}"
+        f"Uploading {parsed_inflation_data_fn} InflationDataset obj to "  # not always upload Inflation dataset. I should correct that.
+        f"{settings.PARSER_BUCKET}/{basename}"
     )
 
 
@@ -137,22 +135,22 @@ async def fetch_data_async(
     )
     return {
         "success": True,
-        "message": f"{CRAWLER_BUCKET}/{filename} is preparing.",
-        "data": {"bucket": CRAWLER_BUCKET, "filename": filename},
+        "message": f"{settings.CRAWLER_BUCKET}/{filename} is preparing.",
+        "data": {"bucket": settings.CRAWLER_BUCKET, "filename": filename},
     }
 
 
 @app.get("/Parse", tags=["Parse"])
 async def parse_data(background_tasks: BackgroundTasks, source_filename):
-    filename = f"{datetime.now().strftime('%Y-%m-%d')}.parse.jsonl.gz"
+    filename = f"{datetime.now().strftime('%Y-%m-%d')}.parse.tsv"
     background_tasks.add_task(
         parse_inflation_data, source_filename, PARSER_OUTPUT_DIR, filename
     )
     return {
         "success": True,
-        "message": f"{PARSER_BUCKET}/{source_filename} is preparing. Output will be "
+        "message": f"{settings.PARSER_BUCKET}/{source_filename} is preparing. Output will be "
         f"{filename}",
-        "data": {"bucket": PARSER_BUCKET, "filename": filename},
+        "data": {"bucket": settings.PARSER_BUCKET, "filename": filename},
     }
 
 

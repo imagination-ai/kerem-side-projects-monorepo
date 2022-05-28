@@ -101,7 +101,7 @@ class Crawler:
             f"File path to fetch and read the spreadsheet is {file_path}"
         )
 
-        df = pd.read_excel(file_path, dtype="object")
+        df = pd.read_excel(file_path, dtype="obj")
         df = df[df["product_links"].notnull()]
 
         records = []
@@ -190,7 +190,7 @@ class CrawlerManager:
             f"File path to fetch and read the spreadsheet is {file_path}"
         )
 
-        df = pd.read_excel(file_path, dtype="object")
+        df = pd.read_excel(file_path, dtype="obj")
         df = df[df["product_links"].notnull()]
 
         records = []
@@ -233,7 +233,7 @@ class CrawlerManager:
         self,
         records: List[ItemRecord],
         path="/",
-        output_fn="inflation-crawl.jsonl",
+        output_fn="inflation-crawl.jsonl.gz",
     ):
 
         output_fn_full_path = os.path.join(path, output_fn)

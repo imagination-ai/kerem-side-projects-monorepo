@@ -62,13 +62,13 @@ def separate_and_add_alternative_lang_names(
     """
     Takes a language list then separate language name that contains two alternatives
         by searching elements have two names (in default names is separated by '/')
-       returns a set object
+       returns a set obj
     Args:
         languages (list): The first argument. It takes the language names list that created proper_lang_list_function.
         sep: The second argument. Defaults to '/' character.
 
     Returns:
-        set: Returns a set object after cleaning two name elements.
+        set: Returns a set obj after cleaning two name elements.
     """
 
     lang_set = set(languages)
@@ -111,7 +111,7 @@ def save_languages_to_json(
 
 def get_languages(filename: str = WORLD_LANG_FILENAME) -> Set:
     """
-    It takes name of the world languages file as an argument returns a set of world languages as set object.
+    It takes name of the world languages file as an argument returns a set of world languages as set obj.
 
     Args:
         filename (str): The first argument. The default to file_name variable.

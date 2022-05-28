@@ -78,6 +78,10 @@ class InflationDataset:
     def to_df(self):
         return pd.DataFrame([record.__dict__ for record in self.dataset])
 
+    def save_as_tsv(self, output_file_name):
+        self.to_df().to_csv(output_file_name, sep="\t")
+        return output_file_name
+
 
 class InflationDatasetIterator:
     def __init__(self, inflation_dataset):
@@ -101,7 +105,11 @@ class ParserManager:
         self.parsers = parsers
 
     def start_parsing(
-        self, data_file_path: str, output_file_path: str, filename: str
+        self,
+        data_file_path: str,
+        output_file_path: str,
+        filename: str,
+        output_format="tsv",
     ):
         records = []
         with ParserManager.open(data_file_path, mode="rt") as file:
@@ -117,7 +125,10 @@ class ParserManager:
         logger.info(
             f"Parsing is done: {item_pages}/{total_pages} parsed to {output_fn_full_path}"
         )
-        return InflationDataset(records).save(output_fn_full_path)
+        if output_format == "tsv":
+            return InflationDataset(records).save_as_tsv(output_fn_full_path)
+        else:
+            return InflationDataset(records).save(output_fn_full_path)
 
     @staticmethod
     def open(data_file_path: str, mode: str):
@@ -176,7 +187,7 @@ class Parser:
     def _get_soup(self, soup):
         """This function aids different parses' method (e.g.,
         MigrosParser._get_product_name) as providing
-        true soup object."""
+        true soup obj."""
 
         NotImplemented
 
@@ -363,6 +374,7 @@ def run():
     dataset = pm.start_parsing(
         data_file_path=args.data_file_path,
         output_file_path=args.output_file_path,
+        filename="deneme1.tsv",
     )
     print(dataset)
 

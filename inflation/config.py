@@ -8,6 +8,9 @@ class Settings(BaseSettings):
     APP_PORT: int = 8000
     APP_HOST: str = "0.0.0.0"
 
+    CRAWLER_BUCKET: str = "inflation-project-crawler-output"
+    PARSER_BUCKET: str = "inflation-project-parser-output"
+
     class Config:
         case_sensitive = True
 

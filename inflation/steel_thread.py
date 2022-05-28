@@ -36,7 +36,9 @@ def run():
 
     parsers = {"a101": A101Parser(), "migros": MigrosParser()}
     pm = ParserManager(parsers)
-    parser_output_path = pm.start_parsing(crawl_output_fn, args.path)
+    parser_output_path = pm.start_parsing(
+        crawl_output_fn, args.path, "parse.tsv"
+    )
 
     print(f"Parsing done. Data saved {parser_output_path}")
 
