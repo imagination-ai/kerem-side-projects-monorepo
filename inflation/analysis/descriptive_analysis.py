@@ -13,7 +13,7 @@ def get_number_of_unique_entries(df):
     """Get number of unique entries in each column with categorical data
     It returns number of unique entries by column, in ascending order
     """
-    object_cols = [col for col in df.columns if df[col].dtype == "object"]
+    object_cols = [col for col in df.columns if df[col].dtype == "obj"]
     object_nunique = list((map(lambda col: df[col].nunique(), object_cols)))
     d = dict(zip(object_cols, object_nunique))
 

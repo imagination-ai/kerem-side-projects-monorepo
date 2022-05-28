@@ -117,16 +117,21 @@ def test_a101_parse_product(
             datetime.datetime(2022, 3, 1, 19, 28),
         ),
     ]
-    with tempfile.TemporaryDirectory() as tmpdirname:
-        parsed_data_fp = parser_manager.start_parsing(
-            str(INFLATION_RESOURCES_PATH / TEST_FILE_PATHS["a101"]),
-            tmpdirname,
-            "sample-filename.json.gz",
-        )
 
-        parsed_dataset = InflationDataset.read(parsed_data_fp)
-        for data_record, truth in zip(parsed_dataset, truths):
-            assert data_record == truth
+    for input_format in ("tsv", "pickle"):
+        with tempfile.TemporaryDirectory() as tmpdirname:
+            parsed_data_fp = parser_manager.start_parsing(
+                str(INFLATION_RESOURCES_PATH / TEST_FILE_PATHS["a101"]),
+                tmpdirname,
+                "sample-filename.json.gz",
+                output_format=input_format,
+            )
+
+            parsed_dataset = InflationDataset.read(
+                parsed_data_fp, input_format=input_format
+            )
+            for data_record, truth in zip(parsed_dataset, truths):
+                assert data_record == truth
 
 
 def test_migros_parse_products(

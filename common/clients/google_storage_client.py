@@ -3,7 +3,6 @@ import os.path
 from google.cloud import storage
 import logging
 from common.customized_logging import configure_logging
-from google.auth.credentials import AnonymousCredentials
 
 
 configure_logging()
@@ -29,3 +28,6 @@ class GoogleStorageClient:
         else:
             blob.download_to_file(destination)
             return destination.name
+
+    def list_objects(self, prefix=None):
+        return self.client.list_blobs(self.bucket_name, prefix=prefix)
