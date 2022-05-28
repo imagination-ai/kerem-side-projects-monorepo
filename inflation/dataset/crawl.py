@@ -190,7 +190,7 @@ class CrawlerManager:
             f"File path to fetch and read the spreadsheet is {file_path}"
         )
 
-        df = pd.read_excel(file_path, dtype="obj")
+        df = pd.read_excel(file_path, dtype="str")
         df = df[df["product_links"].notnull()]
 
         records = []

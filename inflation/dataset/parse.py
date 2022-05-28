@@ -14,7 +14,6 @@ from bs4 import BeautifulSoup
 from common.customized_logging import configure_logging
 from common.utils.mathematical_conversation_utils import convert_price_to_us
 
-
 OUTPUT_PATH_DIR = Path(__file__).parents[2] / "inflation-resources/data/"
 PARSER_OUTPUT_DIR = f"{OUTPUT_PATH_DIR}/parser"
 
@@ -61,7 +60,7 @@ class InflationDataset:
             indxs = list(range(start, stop, step))
             return [self.dataset[i] for i in indxs]
 
-    def save(self, output_file_name):
+    def save_as_pickle(self, output_file_name):
         """
         It saves dataset records by serializing.
         """
@@ -71,15 +70,42 @@ class InflationDataset:
         return output_file_name
 
     @classmethod
-    def read(cls, file_path):
-        with open(file_path, "rb") as input_file:
+    def _read_from_pickle(cls, filepath):
+        with open(filepath, "rb") as input_file:
             return cPickle.load(input_file)
+
+    @classmethod
+    def _read_from_tsv(cls, filepath):
+        converters = {
+            "item_code": lambda x: str(x),
+            "product_code": lambda x: str(x),
+            "sample_date": lambda x: datetime.datetime.strptime(
+                x, "%Y-%m-%d %H:%M:%S"
+            ),
+        }
+        df = pd.read_csv(
+            filepath, sep="\t", parse_dates=True, converters=converters
+        )
+        num_rows, _ = df.shape
+        records = []
+        for i in range(num_rows):
+            record = InflationDataRecord(*df.loc[i].to_list())
+            records.append(record)
+
+        return cls(records)
+
+    @classmethod
+    def read(cls, filepath, input_format="tsv"):
+        if input_format == "tsv":
+            return cls._read_from_tsv(filepath)
+        elif input_format == "pickle":
+            return cls._read_from_pickle(filepath)
 
     def to_df(self):
         return pd.DataFrame([record.__dict__ for record in self.dataset])
 
-    def save_as_tsv(self, output_file_name):
-        self.to_df().to_csv(output_file_name, sep="\t")
+    def save(self, output_file_name):
+        self.to_df().to_csv(output_file_name, sep="\t", index=False)
         return output_file_name
 
 
@@ -106,13 +132,13 @@ class ParserManager:
 
     def start_parsing(
         self,
-        data_file_path: str,
-        output_file_path: str,
+        data_filepath: str,
+        output_filepath: str,
         filename: str,
         output_format="tsv",
     ):
         records = []
-        with ParserManager.open(data_file_path, mode="rt") as file:
+        with ParserManager.open(data_filepath, mode="rt") as file:
             total_pages = 0
             item_pages = 0
             for line in file:
@@ -121,38 +147,38 @@ class ParserManager:
                 records.append(self.parsers[line["source"].lower()].parse(line))
                 item_pages += 1
 
-        output_fn_full_path = os.path.join(output_file_path, filename)
+        output_fn_full_path = os.path.join(output_filepath, filename)
         logger.info(
             f"Parsing is done: {item_pages}/{total_pages} parsed to {output_fn_full_path}"
         )
         if output_format == "tsv":
-            return InflationDataset(records).save_as_tsv(output_fn_full_path)
-        else:
             return InflationDataset(records).save(output_fn_full_path)
+        else:
+            return InflationDataset(records).save_as_pickle(output_fn_full_path)
 
     @staticmethod
-    def open(data_file_path: str, mode: str):
+    def open(data_filepath: str, mode: str):
         """
         It takes the data file path (json or gzip) and opens that.
         Args:
             mode:
-            data_file_path (str):
+            data_filepath (str):
 
         Returns (str):
 
         """
 
         func = None
-        if data_file_path.endswith(".gz"):
+        if data_filepath.endswith(".gz"):
             func = gzip.open
-        elif data_file_path.endswith(".json") or data_file_path.endswith(
+        elif data_filepath.endswith(".json") or data_filepath.endswith(
             ".jsonl"
         ):
             func = open
         else:
             TypeError("You should give json or gzip file format as an input.")
 
-        return func(data_file_path, mode, encoding="UTF-8")
+        return func(data_filepath, mode, encoding="UTF-8")
 
 
 class Parser:
@@ -372,8 +398,8 @@ def run():
     pm = ParserManager(parsers)
 
     dataset = pm.start_parsing(
-        data_file_path=args.data_file_path,
-        output_file_path=args.output_file_path,
+        data_filepath=args.data_filepath,
+        output_filepath=args.output_filepath,
         filename="deneme1.tsv",
     )
     print(dataset)

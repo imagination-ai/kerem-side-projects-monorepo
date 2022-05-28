@@ -20,7 +20,7 @@ with tempfile.TemporaryDirectory() as tmp_dir:
             input_fn = parser_client.download(blob.name, tmp_dir)
             # 2022-03-27.parse.jsonl
             new_fn = input_fn.rsplit(".", maxsplit=1)[0] + ".tsv"
-            output_fn = InflationDataset.read(input_fn).save_as_tsv(new_fn)
+            output_fn = InflationDataset.read(input_fn).save(new_fn)
             logger.info(f"{blob.name} is changed with {new_fn}.")
             parser_client.upload(output_fn, os.path.basename(output_fn))
             logger.info(
