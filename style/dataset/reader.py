@@ -30,6 +30,7 @@ class DatasetReader:
         filenames = sorted(
             glob.glob(f"{container_path}/*/*.txt", recursive=True)
         )
+
         if num_of_books is not None:
             filenames = filenames[:num_of_books]
 
