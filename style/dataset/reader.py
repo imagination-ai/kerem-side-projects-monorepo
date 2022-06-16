@@ -1,4 +1,5 @@
 import glob
+from random import shuffle
 import random
 
 import numpy as np
@@ -6,7 +7,7 @@ import numpy as np
 
 class DatasetReader:
     @staticmethod
-    def load_files(container_path, n: int = 500):
+    def load_files(container_path, n: int = 500, num_of_books=None):
         """Load book files with author names as categories via subfolder names.
 
         It assumes container folders stored a two levels folder structure such as the following
@@ -19,16 +20,18 @@ class DatasetReader:
                     book_40.txt
                   book_55.txt
         Args:
-            n:
+            n: split the books by n.
             container_path:
 
         Returns:
 
         """
         # authors' names are label at the same time folder names
-        filenames = sorted(
-            glob.glob(f"{container_path}/*/*.txt", recursive=True)
-        )
+        filenames = glob.glob(f"{container_path}/*/*.txt", recursive=True)
+        shuffle(filenames)
+        if num_of_books is not None:
+            filenames = filenames[:num_of_books]
+
         data = []
         target = []
         for filename in filenames:
@@ -64,7 +67,7 @@ class Dataset:
         target = np.array(self._target)
         indices = list(range(0, len(self)))
         random.seed(seed)
-        random.shuffle(indices)
+        shuffle(indices)
         self._data = []
         self._target = []
         for i in indices:

@@ -31,6 +31,21 @@ install-test: install
 
 #inflation/dataset/a101.json.gz:
 #	python -m inflation.dataset_download --url "a101.com.tr/*" --output-fn $@ --type json --limit 50000
+#
+
+style-crawl:
+	$(RUN) python -m style.crawler.crawl --catalog-path kerem-side-projects-monorepo/style-resources/resources/pg_catalog.csv
+	make style-remove-audiobooks
+
+style-remove-audiobooks:
+	find style-resources/datasets/book_ds -name '*.txt' | xargs grep "Audio Recording Public Domain Certification" > audio.txt
+	wc -l audio.txt
+	echo -e "removing audio files"
+	cat audio.txt | cut -f1 -d ":" | xargs rm
+	rm audio.txt
+
+style-model_training:
+	$(RUN) python -m style.train.text_classifier.classifier_trainer --document_length 500 --cross_validation 5 --test_percentage 0.2 --min_df 3
 
 crawl:
 	$(RUN) python -m inflation.dataset.crawl --excel-path inflation-resources/data/links.xlsx --path inflation-resources/

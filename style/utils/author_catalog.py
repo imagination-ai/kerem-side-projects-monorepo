@@ -3,7 +3,11 @@ import csv
 from dataclasses import dataclass
 from typing import Dict
 
-from style.constants import CATALOG_FILE_PATH, LOG_FILE_PATH, SELECTED_AUTHORS
+from style.constants import (
+    CATALOG_FILE_PATH,
+    LOG_FILE_PATH,
+    FINAL_SELECTED_AUTHORS,
+)
 
 
 def read_csv(filepath=CATALOG_FILE_PATH):
@@ -32,7 +36,7 @@ def parse_data_row(row: list):
 
 
 def is_selected_author(
-    book: Book, selected_authors=SELECTED_AUTHORS, language="en"
+    book: Book, selected_authors=FINAL_SELECTED_AUTHORS, language="en"
 ):
     """
     Note:
@@ -57,9 +61,7 @@ def is_selected_author(
     return False
 
 
-def create_catalog(
-    filepath: str = CATALOG_FILE_PATH, enable_logging=True
-) -> Dict:
+def create_catalog(filepath: str, enable_logging=True) -> Dict:
     """
 
     Note:
