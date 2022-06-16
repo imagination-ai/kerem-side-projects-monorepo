@@ -35,9 +35,7 @@ def parse_data_row(row: list):
     )
 
 
-def is_selected_author(
-    book: Book, selected_authors=FINAL_SELECTED_AUTHORS, language="en"
-):
+def is_selected_author(book: Book, selected_authors, language="en"):
     """
     Note:
         'Translator' control should check only for the second element of the strings; otherwise, there is a
@@ -61,7 +59,9 @@ def is_selected_author(
     return False
 
 
-def create_catalog(filepath: str, enable_logging=True) -> Dict:
+def create_catalog(
+    filepath: str, selected_authors, enable_logging=True
+) -> Dict:
     """
 
     Note:
@@ -70,7 +70,8 @@ def create_catalog(filepath: str, enable_logging=True) -> Dict:
 
 
     Args:
-        filepath (str): The first argument. The filepath of the source catalog of the related database.
+        filepath (str): The filepath of the source catalog of the related database.
+        selected_authors
         enable_logging (bool): It takes boolean. If it is True (Default), the function will create a log file.
     Returns:
 
@@ -80,7 +81,7 @@ def create_catalog(filepath: str, enable_logging=True) -> Dict:
     author_book_catalog = collections.defaultdict(list)
     for row in read_csv(filepath):
         book = parse_data_row(row)
-        if is_selected_author(book):
+        if is_selected_author(book, selected_authors):
             if enable_logging:
                 create_control_file(book)
             if ";" in book.author:

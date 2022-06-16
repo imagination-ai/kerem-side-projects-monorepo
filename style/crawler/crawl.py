@@ -11,6 +11,7 @@ from style.constants import (
     FILE_PATH_BOOK_DS,
     GUTENBERG_BASE_URL,
     CATALOG_FILE_PATH,
+    FINAL_SELECTED_AUTHORS,
 )
 from style.utils.author_catalog import create_catalog
 from style.utils.utils import sanitize_author_name
@@ -85,7 +86,7 @@ class GutenbergWrangler(DataWrangler, ABC):
                     response = self.session.get(book_url)
                     try:
                         return response.content.decode("utf8")
-                    except UnicodeDecodeError:
+                    except (UnicodeDecodeError, AttributeError):
                         return response.text
         else:
             raise NotImplementedError(
@@ -127,7 +128,7 @@ class GutenbergWrangler(DataWrangler, ABC):
         if not path.isdir(FILE_PATH_BOOK_DS):
             mkdir(FILE_PATH_BOOK_DS)
 
-        authors_catalog = create_catalog(catalog_path)
+        authors_catalog = create_catalog(catalog_path, FINAL_SELECTED_AUTHORS)
         total_books = 0
         total_skipped_books = 0
 

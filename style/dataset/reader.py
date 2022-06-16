@@ -28,7 +28,6 @@ class DatasetReader:
         """
         # authors' names are label at the same time folder names
         filenames = glob.glob(f"{container_path}/*/*.txt", recursive=True)
-        shuffle(filenames)
         if num_of_books is not None:
             filenames = filenames[:num_of_books]
 

@@ -1,7 +1,11 @@
 import pytest
 
-from style.constants import SELECTED_AUTHORS
+from style.constants import SELECTED_AUTHORS, BASE_PATH
 from style.utils.author_catalog import Book, create_catalog, is_selected_author
+
+CATALOG_FILE_PATH = (
+    BASE_PATH / "style-resources" / "resources" / "small_pg_catalog.csv"
+)
 
 
 @pytest.mark.parametrize(
@@ -16,9 +20,9 @@ from style.utils.author_catalog import Book, create_catalog, is_selected_author
 )
 def test_is_selected_author(case, result):
     book = Book("1", "title", "en", case)
-    assert is_selected_author(book) == result
+    assert is_selected_author(book, SELECTED_AUTHORS) == result
 
 
 def test_create_catalog():
-    authors_catalog = create_catalog()
-    assert len(authors_catalog) == len(SELECTED_AUTHORS)
+    authors_catalog = create_catalog(CATALOG_FILE_PATH, SELECTED_AUTHORS)
+    assert len(authors_catalog) == 1

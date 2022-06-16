@@ -2,6 +2,7 @@ import os
 from pathlib import Path
 
 BASE_PATH: Path = Path(os.getenv("APP_RESOURCE_DIR", Path(__file__).parents[1]))
+
 # Constants for utils.world_languages
 WORLD_LANG_FILENAME = "world-lang.json"
 WORLD_LANG_PATH = BASE_PATH / "resources/"
@@ -119,4 +120,5 @@ FINAL_SELECTED_AUTHORS = (
 SELECTED_AUTHORS = (
     "Dostoyevsky, Fyodor, 1821-1881",
     "Tolstoy, Leo, graf, 1828-1910",
+    "Jefferson, Thomas, 1743-1826",
 )
