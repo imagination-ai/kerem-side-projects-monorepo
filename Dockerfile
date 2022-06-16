@@ -34,9 +34,9 @@ FROM base as style
 
 COPY style /build/style
 COPY style-resources/tests /build/tests
-COPY style-resources/resources /applications/resources
-COPY style-resources/datasets /applications/datasets
-COPY style-resources/models /applications/models
+COPY style-resources/resources /applications/style-resources/resources
+COPY style-resources/datasets/mock_ds /applications/style-resources/datasets/mock_ds
+COPY style-resources/models /applications/style-resources/models
 
 RUN \
     if [ "$skip_tests" = "" ] ; then \
@@ -89,3 +89,13 @@ ENV PATH=/applications:$PATH
 
 COPY entrypoints/inflation-app-entrypoint.sh /applications/inflation-app-entrypoint.sh
 ENTRYPOINT ["sh", "/applications/inflation-app-entrypoint.sh"]
+
+##### Leaf image: Style trainer
+FROM style as style_trainer
+RUN pip install jupyterlab
+
+COPY style-resources/datasets/book_ds /applications/style-resources/datasets/book_ds
+
+WORKDIR /applications
+
+ENTRYPOINT ["jupyter", "notebook", "--ip=0.0.0.0", "--allow-root", "--no-browser", "--port=8080"]

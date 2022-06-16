@@ -11,7 +11,7 @@ def dataset():
 
 class TestDatasetReader:
     def test_load_files(self, dataset):
-        assert dataset.target[0] == "frederick_douglass"
+        assert dataset.target[0] == "abraham_lincoln"
         assert len(dataset.data) == 571
 
 
@@ -19,4 +19,4 @@ class TestDataset:
     def test_slice(self, dataset):
         small_dataset = dataset[:2]
         assert len(small_dataset) == 2
-        assert dataset[0].target == ["frederick_douglass"]
+        assert dataset[0].target == ["abraham_lincoln"]

@@ -27,7 +27,9 @@ class DatasetReader:
 
         """
         # authors' names are label at the same time folder names
-        filenames = glob.glob(f"{container_path}/*/*.txt", recursive=True)
+        filenames = sorted(
+            glob.glob(f"{container_path}/*/*.txt", recursive=True)
+        )
         if num_of_books is not None:
             filenames = filenames[:num_of_books]
 
