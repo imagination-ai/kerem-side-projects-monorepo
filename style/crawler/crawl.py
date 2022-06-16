@@ -1,3 +1,4 @@
+import logging
 from abc import ABC, abstractmethod
 from os import mkdir, path
 
@@ -5,9 +6,19 @@ import requests
 from bs4 import BeautifulSoup
 from urlpath import URL
 
-from style.constants import FILE_PATH_BOOK_DS, GUTENBERG_BASE_URL
+from common.customized_logging import configure_logging
+from style.constants import (
+    FILE_PATH_BOOK_DS,
+    GUTENBERG_BASE_URL,
+    CATALOG_FILE_PATH,
+    FINAL_SELECTED_AUTHORS,
+)
 from style.utils.author_catalog import create_catalog
 from style.utils.utils import sanitize_author_name
+
+
+configure_logging()
+logger = logging.getLogger(__name__)
 
 
 class DataWrangler:
@@ -67,13 +78,16 @@ class GutenbergWrangler(DataWrangler, ABC):
         elif response.status_code == 404:
             url = URL(book_url).parent
             response = self.session.get(url)
-            soup = BeautifulSoup(response.content, "html.parser")
+            soup = BeautifulSoup(response.content, "lxml")
             for link in soup.find_all("a"):
                 current_link = link.get("href")
                 if current_link.endswith(".txt"):
                     book_url = f"{url}/{current_link}"
                     response = self.session.get(book_url)
-                    return response.text
+                    try:
+                        return response.content.decode("utf8")
+                    except (UnicodeDecodeError, AttributeError):
+                        return response.text
         else:
             raise NotImplementedError(
                 f"Not Implemented for {response.status_code}"
@@ -98,7 +112,7 @@ class GutenbergWrangler(DataWrangler, ABC):
         with open(book_path, "w") as f:
             f.write(book_text)
 
-    def crawl(self) -> None:
+    def crawl(self, catalog_path, book_id_to_fetch=None) -> None:
         """
         The purpose of the function is to create a book database for the selected authors.
         The function first checks the book database directory exists or not.
@@ -114,16 +128,48 @@ class GutenbergWrangler(DataWrangler, ABC):
         if not path.isdir(FILE_PATH_BOOK_DS):
             mkdir(FILE_PATH_BOOK_DS)
 
-        authors_catalog = create_catalog()
+        authors_catalog = create_catalog(catalog_path, FINAL_SELECTED_AUTHORS)
+        total_books = 0
+        total_skipped_books = 0
 
-        for author, books in authors_catalog.items():
+        for i, (author, books) in enumerate(authors_catalog.items(), 1):
+            print(f"{i}/{len(authors_catalog)}. {author} crawling...")
+            total_books += 1
             for book in books:
                 book_id = book.book_id
+                if book_id_to_fetch is not None:
+                    if book_id != book_id_to_fetch:
+                        continue
                 book_author = book.author
+                print(f"\t{book} is crawling...", end=" ")
                 book_text = self.get_book(book_id)
-                self._save_books_to_disk(book_text, book_author, book_id)
+                if book_text is not None:
+                    self._save_books_to_disk(book_text, book_author, book_id)
+                    print("success!")
+                else:
+                    logger.info(f"{book_id} has no txt file. Skipping...")
+                    print("skip.")
+                    total_skipped_books += 1
+        print(
+            f"total # of books: {total_books} -- # of skipped books: {total_skipped_books}"
+        )
+
+
+def run():
+    import argparse
+
+    parser = argparse.ArgumentParser(description="catalog arguments")
+    parser.add_argument(
+        "--catalog-path", type=str, help="the path of the catalog file"
+    )
+    parser.add_argument("--book-id", type=str, help="book id")
+    wrangler = GutenbergWrangler()
+    args = parser.parse_args()
+
+    catalog_path = args.catalog_path or CATALOG_FILE_PATH
+    book_id = args.book_id
+    wrangler.crawl(catalog_path, book_id_to_fetch=book_id)
 
 
 if __name__ == "__main__":
-    gutenberg = GutenbergWrangler()
-    gutenberg.crawl()
+    run()
