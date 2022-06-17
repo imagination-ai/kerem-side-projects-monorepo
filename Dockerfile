@@ -102,6 +102,14 @@ RUN pip install jupyterlab
 #RUN tar -xzvf style-datasets/datasets/book_ds.tar.gz
 #RUN rm style-datasets/datasets/book_ds.tar.gz
 
+COPY entrypoints/style-trainer-entrypoint.sh /applications/style-trainer-entrypoint.sh
 WORKDIR /applications
 
-ENTRYPOINT ["jupyter", "notebook", "--ip=0.0.0.0", "--allow-root", "--no-browser", "--port=8080"]
+RUN apt-get update -y && apt-get install -y curl gnupg
+#RUN echo "deb [signed-by=/usr/share/keyrings/cloud.google.gpg] http://packages.cloud.google.com/apt cloud-sdk main" | tee -a /etc/apt/sources.list.d/google-cloud-sdk.list && curl https://packages.cloud.google.com/apt/doc/apt-key.gpg | apt-key --keyring /usr/share/keyrings/cloud.google.gpg  add - && apt-get update -y && apt-get install google-cloud-cli -y
+RUN echo "deb [signed-by=/usr/share/keyrings/cloud.google.gpg] https://packages.cloud.google.com/apt cloud-sdk main" | tee -a /etc/apt/sources.list.d/google-cloud-sdk.list
+RUN curl https://packages.cloud.google.com/apt/doc/apt-key.gpg | apt-key --keyring /usr/share/keyrings/cloud.google.gpg add -
+RUN apt-get update -y && apt-get install google-cloud-cli -y
+
+
+ENTRYPOINT ["sh", "/applications/style-trainer-entrypoint.sh"]

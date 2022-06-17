@@ -8,4 +8,6 @@ portfolio/portfolio
 portfolio/node_modules
 *.pyc
 
+style-resources/datasets/book_ds
+
 inflation-resources/chromedriver
