@@ -219,7 +219,7 @@ def run():
             "vectorize__ngram_range": [(1, 1), (1, 2), (1, 3)],
             "clf_sgd__loss": [
                 "hinge",
-                "log",
+                "log_loss",
                 "modified_huber",
                 "perceptron",
                 "squared_hinge",
