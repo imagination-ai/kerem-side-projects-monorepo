@@ -15,5 +15,7 @@ echo PARSING starting for the crawl output: ${crawl_output}
 parse_output=$(http :8000/Parse?source_filename=${crawl_output} | jq .data.filename | tr -d '"') || exit -1
 echo PARSING should be done soon and output will be: ${parse_output}
 
-docker-compose down
+docker exec -it kerem-side-projects-monorepo_inflation_1 cat ./build/data/parser/${parse_output}
+
+docker-compose down --volumes --remove-orphans
 echo "Success!"
