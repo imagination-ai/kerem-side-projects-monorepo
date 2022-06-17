@@ -1,5 +1,8 @@
 #!/usr/bin/env bash
 
+
+mkdir -p /applications/style-resources/models
+
 gsutil cp gs://projects-misc/datasets/style-datasets/book_ds.tar.gz .
 tar -xzvf book_ds.tar.gz
 mv book_ds style-resources/datasets/book_ds
