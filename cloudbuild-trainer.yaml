@@ -6,11 +6,9 @@ steps:
     args:
       - build
       - '--target'
-      - style-trainer
+      - style_trainer
       - '-t'
       - '$_GCR_HOSTNAME/$PROJECT_ID/$REPO_NAME/style-trainer:latest'
-      - '-f'
-      - '$_DOCKERFILE'
       - '--cache-from'
       - '$_GCR_HOSTNAME/$PROJECT_ID/$REPO_NAME/style-trainer:latest'
       - .
