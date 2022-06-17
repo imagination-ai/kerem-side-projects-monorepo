@@ -207,9 +207,25 @@ def run():
             "vectorize__ngram_range": [(1, 1), (1, 2), (1, 3)],
             "clf_svc__C": [0.01, 0.1, 1, 10],
         },
-        {"vectorize__ngram_range": [(1, 1), (1, 2), (1, 3)]},
-        {"vectorize__ngram_range": [(1, 1), (1, 2), (1, 3)]},
-        {"vectorize__ngram_range": [(1, 1), (1, 2), (1, 3)]},
+        {
+            "vectorize__ngram_range": [(1, 1), (1, 2), (1, 3)],
+            "clf_nb__alpha": [0.1, 0.3, 0.5, 0.8, 0.1],
+        },
+        {
+            "vectorize__ngram_range": [(1, 1), (1, 2), (1, 3)],
+            "clf_lg__C": [1e-7, 1e-6, 1e-5, 1e-4, 1e-3, 1e-2, 1e-1, 1e0],
+        },
+        {
+            "vectorize__ngram_range": [(1, 1), (1, 2), (1, 3)],
+            "clf_sgd__loss": [
+                "hinge",
+                "log",
+                "modified_huber",
+                "perceptron",
+                "squared_hinge",
+            ],
+            "clf_sgd__penalty": ["l2", "l1"],
+        },
     ]
 
     # argparse
