@@ -36,7 +36,6 @@ COPY style /build/style
 COPY style-resources/tests /build/tests
 COPY style-resources/resources /applications/style-resources/resources
 COPY style-resources/datasets/mock_ds /applications/style-resources/datasets/mock_ds
-COPY style-resources/models /applications/style-resources/models
 
 RUN \
     if [ "$skip_tests" = "" ] ; then \
@@ -94,7 +93,11 @@ ENTRYPOINT ["sh", "/applications/inflation-app-entrypoint.sh"]
 FROM style as style_trainer
 RUN pip install jupyterlab
 
-COPY style-resources/datasets/book_ds /applications/style-resources/datasets/book_ds
+# Fetch the dataset
+RUN gsutil cp gs://projects-misc/datasets/style-datasets/book_ds.tar.gz .
+RUN tar -xzvf book_ds.tar.gz
+RUN cp -r book_ds /applications/style-resources/datasets/book_ds
+RUN rm book_ds.tar.gz
 
 WORKDIR /applications
 
