@@ -1,25 +1,25 @@
 steps:
   - name: 'gcr.io/cloud-builders/docker'
     entrypoint: 'bash'
-    args: ['-c', 'docker pull $_GCR_HOSTNAME/$PROJECT_ID/$REPO_NAME/style-trainer:latest || exit 0']
+    args: ['-c', 'docker pull us.gcr.io/$PROJECT_ID/$REPO_NAME/style_trainer:latest || exit 0']
   - name: gcr.io/cloud-builders/docker
     args:
       - build
       - '--target'
-      - style_trainer
+      - 'style_trainer'
       - '-t'
-      - '$_GCR_HOSTNAME/$PROJECT_ID/$REPO_NAME/style-trainer:latest'
+      - 'us.gcr.io/$PROJECT_ID/$REPO_NAME/style_trainer:latest'
       - '--cache-from'
-      - '$_GCR_HOSTNAME/$PROJECT_ID/$REPO_NAME/style-trainer:latest'
+      - 'us.gcr.io/$PROJECT_ID/$REPO_NAME/style_trainer:latest'
       - .
     id: Build
   - name: gcr.io/cloud-builders/docker
     args:
       - push
-      - '$_GCR_HOSTNAME/$PROJECT_ID/$REPO_NAME/style-trainer:latest'
+      - 'us.gcr.io/$PROJECT_ID/$REPO_NAME/style_trainer:latest'
     id: Push :latest
 images:
-  - '$_GCR_HOSTNAME/$PROJECT_ID/$REPO_NAME/style-trainer:latest'
+  - 'us.gcr.io/$PROJECT_ID/$REPO_NAME/style_trainer'
 options:
   substitutionOption: ALLOW_LOOSE
 tags:
