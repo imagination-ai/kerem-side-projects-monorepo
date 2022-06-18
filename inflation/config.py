@@ -2,7 +2,6 @@ from common.config import CommonSettings
 
 
 class InflationAppSettings(CommonSettings):
-
     APP_PORT: int = 8000
 
     CRAWLER_BUCKET: str = "inflation-project-crawler-output"

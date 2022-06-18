@@ -27,7 +27,6 @@ install-dev: install-test
 
 	touch fake-gcs/$(GCS_BUCKET)/fake-data.txt
 
-
 	$(RUN) pip install -r requirements-dev.txt
 	$(RUN) pre-commit install && pre-commit install -t pre-push
 	brew install httpie
