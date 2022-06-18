@@ -4,6 +4,8 @@ ENV ?= .venv
 RUN = . $(ENV)/bin/activate &&
 GCS_BUCKET = test-bucket
 
+export ENVIRONMENT=local
+
 .venv:
 	virtualenv $(ENV) --python=python3.8
 	touch $@
@@ -13,14 +15,18 @@ install: .venv requirements.txt
 
 install-dev: install-test
 	#wget https://chromedriver.storage.googleapis.com/98.0.4758.102/chromedriver_mac64.zip
-	wget https://chromedriver.storage.googleapis.com/101.0.4951.41/chromedriver_mac64.zip
+#	wget https://chromedriver.storage.googleapis.com/101.0.4951.41/chromedriver_mac64.zip
+	wget https://chromedriver.storage.googleapis.com/102.0.5005.61/chromedriver_mac64.zip
 	unzip chromedriver_mac64.zip
 	mv chromedriver /usr/local/bin/chromedriver
 	rm chromedriver_mac64.zip
 
 	# prep for fake gcs
+	# fake buckets
 	mkdir -p fake-gcs/$(GCS_BUCKET)
+
 	touch fake-gcs/$(GCS_BUCKET)/fake-data.txt
+
 
 	$(RUN) pip install -r requirements-dev.txt
 	$(RUN) pre-commit install && pre-commit install -t pre-push
@@ -46,7 +52,7 @@ style-remove-audiobooks:
 
 style-model_training:
 	$(RUN) python -m style.train.classifier_trainer --document_length 500 --cross_validation 5 --test_percentage 0.2 --min_df 3
-  
+
 crawl:
 	$(RUN) python -m inflation.dataset.crawl --excel-path inflation-resources/data/links.xlsx --path inflation-resources/
 #inflation/dataset/%.json.gz:

@@ -1,17 +1,17 @@
-import glob
-import tempfile
-from random import shuffle
-from pathlib import Path
-from os import mkdir, path
-import random
 from collections import Counter
 import datetime
-from common.clients.google_storage_client import GoogleStorageClient
-import pandas as pd
+import glob
+from pathlib import Path
+import random
+from random import shuffle
+import tempfile
+
 import matplotlib.pyplot as plt
-from style.constants import FIGURES_PATH
-from style.config import settings
 import numpy as np
+import pandas as pd
+
+from common.clients.google_storage_client import get_storage_client
+from common.config import settings
 
 
 class DatasetReader:
@@ -118,10 +118,8 @@ def draw_sample_distributions(
     Returns: None
 
     """
-    # if not path.isdir(FIGURES_PATH):
-    #     mkdir(FIGURES_PATH)
 
-    misc_client = GoogleStorageClient(bucket_name=settings.MISC_BUCKET)
+    misc_client = get_storage_client(bucket_name=settings.MISC_BUCKET)
 
     dataset1_prop_val = calculate_author_distributions(dataset1)
     dataset2_prop_val = calculate_author_distributions(dataset2)
@@ -134,7 +132,7 @@ def draw_sample_distributions(
         dataset2_prop_val.items(), columns=["author", f"{dataset2_label}_share"]
     )
 
-    df_merged = pd.merged(df1, df2, how="outer", on="author")
+    df_merged = pd.merge(df1, df2, how="outer", on="author")
 
     df_merged.plot.barh(
         rot=0,
@@ -152,7 +150,7 @@ def draw_sample_distributions(
         fn = f"distribution-comparison-{suffix}.svg"
         plt.savefig(tmpdir_path / fn)
         return misc_client.upload(
-            tmpdir_path / fn, f"style/figures/{fn}", enable_public=True
+            tmpdir_path / fn, f"style/figures/{fn}", enable_public=False
         )
 
 

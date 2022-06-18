@@ -1,4 +1,5 @@
 # Docker setup
+
 docker-compose down --volumes --remove-orphans
 docker-compose up -d inflation
 sleep 10
@@ -8,7 +9,6 @@ echo Docker setup done.
 echo CRAWLING starting for a small dataset.
 crawl_output=$(http :8000/Crawl\?excel_path\=https%3A%2F%2Fdocs.google.com%2Fspreadsheets%2Fd%2F1Xv5UOTpzDPELdtk8JW1oDWbjpsEexAKKLzgzZBB-2vw%2Fedit%23gid%3D0 | jq .data.filename | tr -d '"') || exit -1
 echo CRAWL output will be: ${crawl_output}. Giving 5 seconds waiting.
-sleep 5
 
 # Parsing
 echo PARSING starting for the crawl output: ${crawl_output}

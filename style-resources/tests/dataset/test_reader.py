@@ -1,7 +1,11 @@
 import pytest
 
 from style.constants import FILE_PATH_MOCK_DS
-from style.dataset.reader import DatasetReader, calculate_author_distributions
+from style.dataset.reader import (
+    DatasetReader,
+    calculate_author_distributions,
+    draw_sample_distributions,
+)
 
 
 @pytest.fixture
@@ -33,3 +37,11 @@ def test_calculate_author_distributions(dataset):
     dist = calculate_author_distributions(dataset)
     assert isinstance(dist, dict)
     assert abs(sum(dist.values())) - 1 < 0.0001
+
+
+def test_draw_sample_distributions(dataset):
+    dataset_sampled = dataset.resample(0.2)
+    path = draw_sample_distributions(
+        dataset, dataset_sampled, "label_full", "label_sampled"
+    )
+    assert path.startswith("style/figures")
