@@ -19,6 +19,5 @@ sleep 3
 
 http http://localhost:4443/storage/v1/b/test-bucket/o/${parse_output}
 
-docker exec -it kerem-side-projects-monorepo_inflation_1 cat ./build/data/parser/${parse_output}
 docker-compose down --volumes --remove-orphans
 echo "Success!"
