@@ -50,7 +50,7 @@ style-remove-audiobooks:
 	rm audio.txt
 
 style-model_training:
-	$(RUN) python -m style.train.classifier_trainer --document_length 500 --cross_validation 5 --test_percentage 0.2 --min_df 3
+	$(RUN) python -m style.train.classifier_trainer --document_length 500 --cross_validation 5 --test_percentage 0.2 --min_df 3 --percent 0.5
 
 crawl:
 	$(RUN) python -m inflation.dataset.crawl --excel-path inflation-resources/data/links.xlsx --path inflation-resources/

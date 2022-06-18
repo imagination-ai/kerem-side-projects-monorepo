@@ -192,6 +192,9 @@ def run():
         type=int,
         help="means ignore terms that appear in less than 5 documents or ignore terms that appear in less than 1% of the documents",
     )
+    parser.add_argument(
+        "--percent", default=1.0, type=float, help="Size of resampling"
+    )
 
     args = parser.parse_args()
     print(args)
@@ -232,6 +235,7 @@ def run():
     # dataset
     num_books = args.num_books
     document_length = args.document_length
+    percent = args.percent
     # train model
     cross_validation = args.cross_validation
     # split dataset
@@ -244,7 +248,7 @@ def run():
     dataset = DatasetReader.load_files(
         FILE_PATH_BOOK_DS, n=document_length, num_of_books=num_books
     )
-
+    dataset = dataset.resample(percent)
     print(len(dataset))
     dataset.shuffle()
     docs_train, docs_test, y_train, y_test, dataset_target = split_dataset(

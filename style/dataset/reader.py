@@ -92,7 +92,7 @@ class Dataset:
         return Dataset([self.data[s]], [self.target[s]])
 
     def resample(self, percentage: float):
-
+        assert 0 < percentage <= 1.0
         """
         It takes sub sample of the dataset. First, randomized the sorted dataset.
 
@@ -103,10 +103,13 @@ class Dataset:
         Returns:
 
         """
-        self.shuffle()
-        size = len(self.data)
-        new_dataset_size = round(size * percentage)
-        return self[:new_dataset_size]
+        if percentage != 1.0:
+            self.shuffle()
+            size = len(self.data)
+            new_dataset_size = round(size * percentage)
+            return self[:new_dataset_size]
+        else:
+            return self
 
 
 def draw_sample_distributions(

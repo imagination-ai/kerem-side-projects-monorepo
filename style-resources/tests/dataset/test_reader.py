@@ -30,7 +30,9 @@ def test_resample(dataset):
     assert len(dataset.resample(percentage=0.5)) == 286
     assert len(dataset.resample(percentage=0.2)) == 114
     assert len(dataset.resample(percentage=1)) == 571
-    assert len(dataset.resample(percentage=0)) == 0
+    with pytest.raises(AssertionError):
+        assert len(dataset.resample(percentage=0))
+        assert len(dataset.resample(percentage=3))
 
 
 def test_calculate_author_distributions(dataset):
