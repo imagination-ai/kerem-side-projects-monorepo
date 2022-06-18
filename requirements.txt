@@ -18,6 +18,7 @@ python-multipart
 cdx_toolkit
 lxml
 pandas
+matplotlib
 openpyxl
 google
 google-cloud-storage
