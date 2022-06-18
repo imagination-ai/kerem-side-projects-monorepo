@@ -10,6 +10,7 @@ class Settings(BaseSettings):
 
     CRAWLER_BUCKET: str = "inflation-project-crawler-output"
     PARSER_BUCKET: str = "inflation-project-parser-output"
+    MISC_BUCKET: str = "projects-misc"
 
     class Config:
         case_sensitive = True

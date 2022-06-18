@@ -46,9 +46,6 @@ def create_directory():
             logger.info(f"Skipping creating {directory} since it exists.")
 
 
-create_directory()
-
-
 def fetch_inflation_data(excel_path, output_path, filename):
     """
 
@@ -116,6 +113,11 @@ def collect_db_stats(db_path):
                 db_stats[entry] = len(f.readlines())
 
     return db_stats
+
+
+@app.on_event("startup")
+async def startup_event():
+    create_directory()
 
 
 @app.get("/", tags=["Index"])

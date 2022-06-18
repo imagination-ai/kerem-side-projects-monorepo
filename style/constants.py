@@ -11,6 +11,7 @@ WORLD_LANG_PATH = BASE_PATH / "resources/"
 GUTENBERG_BASE_URL = "http://aleph.gutenberg.org/"
 FILE_PATH_BOOK_DS = BASE_PATH / "style-resources" / "datasets/book_ds"
 FILE_PATH_MOCK_DS = BASE_PATH / "style-resources" / "datasets/mock_ds"
+FIGURES_PATH = BASE_PATH / "style-resources" / "figures"
 
 # Constants for utils.author_catalog
 CATALOG_FILE_PATH = (

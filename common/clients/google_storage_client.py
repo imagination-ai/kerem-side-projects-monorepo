@@ -15,9 +15,16 @@ class GoogleStorageClient:
         self.client = storage.Client()
         self.bucket = self.client.bucket(self.bucket_name)
 
-    def upload(self, source_file_full_path, destination_filename):
+    def upload(
+        self, source_file_full_path, destination_filename, enable_public=False
+    ):
         blob = self.bucket.blob(destination_filename)
         blob.upload_from_filename(source_file_full_path)
+        if enable_public:
+            blob.make_public()
+            return blob.public_url
+
+        return blob.path
 
     def download(self, source_filename, destination):
         blob = self.bucket.blob(source_filename)

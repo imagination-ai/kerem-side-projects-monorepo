@@ -8,6 +8,8 @@ class Settings(BaseSettings):
     APP_PORT: int = 8080
     APP_HOST: str = "0.0.0.0"
 
+    MISC_BUCKET: str = "projects-misc"
+
     class Config:
         case_sensitive = True
 
