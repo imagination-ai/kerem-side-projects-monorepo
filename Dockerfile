@@ -1,4 +1,4 @@
-FROM ghcr.io/imagination-ai/base-python:latest as base
+FROM ghcr.io/imagination-ai/base-python:0.0.3 as base
 
 #RUN apt-get update -y && \
     #apt-get install -y \
