@@ -21,5 +21,6 @@ pandas
 openpyxl
 google
 google-cloud-storage
+matplotlib
 
 urllib3

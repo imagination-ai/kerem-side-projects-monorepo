@@ -1,8 +1,17 @@
+from collections import Counter
+import datetime
 import glob
-from random import shuffle
+from pathlib import Path
 import random
+from random import shuffle
+import tempfile
 
+import matplotlib.pyplot as plt
 import numpy as np
+import pandas as pd
+
+from common.clients.google_storage_client import get_storage_client
+from common.config import settings
 
 
 class DatasetReader:
@@ -81,3 +90,86 @@ class Dataset:
             return Dataset(self.data[s], self.target[s])
 
         return Dataset([self.data[s]], [self.target[s]])
+
+    def resample(self, percentage: float):
+        assert 0 < percentage <= 1.0
+        """
+        It takes sub sample of the dataset. First, randomized the sorted dataset.
+
+
+        Args:
+            percentage: It takes percentage piece from data. It takes
+
+        Returns:
+
+        """
+        if percentage != 1.0:
+            self.shuffle()
+            size = len(self.data)
+            new_dataset_size = round(size * percentage)
+            return self[:new_dataset_size]
+        else:
+            return self
+
+
+def draw_sample_distributions(
+    dataset1: Dataset, dataset2: Dataset, dataset1_label, dataset2_label
+):
+    """
+    It is a function that helps to compare how two different samples are distributed.
+    It saves the figures.
+    Returns: None
+
+    """
+
+    misc_client = get_storage_client(bucket_name=settings.MISC_BUCKET)
+
+    dataset1_prop_val = calculate_author_distributions(dataset1)
+    dataset2_prop_val = calculate_author_distributions(dataset2)
+
+    # transform to df to merge and draw its figure
+    df1 = pd.DataFrame(
+        dataset1_prop_val.items(), columns=["author", f"{dataset1_label}_share"]
+    )
+    df2 = pd.DataFrame(
+        dataset2_prop_val.items(), columns=["author", f"{dataset2_label}_share"]
+    )
+
+    df_merged = pd.merge(df1, df2, how="outer", on="author")
+
+    df_merged.plot.barh(
+        rot=0,
+        x="author",
+        color={
+            f"{dataset1_label}_share": "blue",
+            f"{dataset2_label}_share": "red",
+        },
+        figsize=(15, 30),
+    )
+
+    with tempfile.TemporaryDirectory() as tmpdir:
+        tmpdir_path = Path(tmpdir)
+        suffix = datetime.datetime.now().strftime("%Y-%m-%d-%H-%M")
+        fn = f"distribution-comparison-{suffix}.svg"
+        plt.savefig(tmpdir_path / fn)
+        return misc_client.upload(
+            tmpdir_path / fn, f"style/figures/{fn}", enable_public=False
+        )
+
+
+def calculate_author_distributions(dataset: Dataset):
+    """
+    It takes a Dataset and returns the proportional value representing each author in the dataset.
+    Args:
+        dataset:
+
+    Returns:
+
+    """
+    counts = Counter(dataset.target)
+    total_count = sum(counts.values())
+
+    return {
+        author: round(count / total_count, 3)
+        for (author, count) in counts.items()
+    }

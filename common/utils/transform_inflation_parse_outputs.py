@@ -5,7 +5,7 @@ import tempfile
 
 import pandas as pd
 
-from common.clients.google_storage_client import GoogleStorageClient
+from common.clients.google_storage_client import get_storage_client
 from common.customized_logging import configure_logging
 from inflation.config import settings
 
@@ -13,7 +13,7 @@ configure_logging()
 logger = logging.getLogger(__name__)
 
 
-parser_client = GoogleStorageClient(bucket_name=settings.PARSER_BUCKET)
+parser_client = get_storage_client(bucket_name=settings.PARSER_BUCKET)
 
 with tempfile.TemporaryDirectory() as tmp_dir:
     blobs = parser_client.list_objects()
