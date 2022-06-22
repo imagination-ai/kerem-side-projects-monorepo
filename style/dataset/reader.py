@@ -117,7 +117,11 @@ class Dataset:
 
 
 def draw_sample_distributions(
-    dataset1: Dataset, dataset2: Dataset, dataset1_label, dataset2_label, tmpdir
+    dataset1: Dataset,
+    dataset2: Dataset,
+    dataset1_label,
+    dataset2_label,
+    tempdir,
 ):
     """
     It is a function that helps to compare how two different samples are distributed.
@@ -153,15 +157,11 @@ def draw_sample_distributions(
         figsize=(15, 30),
     )
 
-    tmpdir_path = Path(tmpdir)
     suffix = datetime.datetime.now().strftime("%Y-%m-%d-%H-%M")
-    fn = f"distribution-comparison-{suffix}.svg"
-    plt.savefig(tmpdir_path / fn)
-    misc_client = get_storage_client(bucket_name=settings.MISC_BUCKET)
+    fp = Path(tempdir) / f"distribution-comparison-{suffix}.svg"
+    plt.savefig(fp)
 
-    return misc_client.upload(
-        tmpdir_path / fn, f"style/figures/{fn}", enable_public=False
-    )
+    return fp
 
 
 def calculate_author_distributions(dataset: Dataset):

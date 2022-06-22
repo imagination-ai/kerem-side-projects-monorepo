@@ -6,6 +6,7 @@ from style.dataset.reader import (
     calculate_author_distributions,
     draw_sample_distributions,
 )
+import tempfile
 
 
 @pytest.fixture
@@ -43,7 +44,8 @@ def test_calculate_author_distributions(dataset):
 
 def test_draw_sample_distributions(dataset):
     dataset_sampled = dataset.resample(0.2)
-    path = draw_sample_distributions(
-        dataset, dataset_sampled, "label_full", "label_sampled"
-    )
-    assert path.startswith("style/figures")
+    with tempfile.TemporaryDirectory() as tmpdirname:
+        path = draw_sample_distributions(
+            dataset, dataset_sampled, "label_full", "label_sampled", tmpdirname
+        )
+    assert str(path).endswith(".svg")

@@ -4,7 +4,6 @@ ENV ?= .venv
 RUN = . $(ENV)/bin/activate &&
 GCS_BUCKET = test-bucket
 
-export ENVIRONMENT=local
 
 .venv:
 	virtualenv $(ENV) --python=python3.8
@@ -14,7 +13,7 @@ install: .venv requirements.txt
 	$(RUN) pip install -r requirements.txt
 
 install-dev: install-test
-	wget https://chromedriver.storage.googleapis.com/103.0.5005.61/chromedriver_mac64.zip
+	wget https://chromedriver.storage.googleapis.com/103.0.5060.53/chromedriver_mac64.zip
 	unzip chromedriver_mac64.zip
 	mv chromedriver /usr/local/bin/chromedriver
 	rm chromedriver_mac64.zip
@@ -59,6 +58,7 @@ clean:
 	rm -rf $(ENV)
 
 test:
+	export ENVIRONMENT=test
 	APP_RESOURCE_DIR='.' PYTHONPATH=$(PWD) pytest style-resources/tests
 	PYTHONPATH=$(PWD) pytest inflation-resources/tests
 
