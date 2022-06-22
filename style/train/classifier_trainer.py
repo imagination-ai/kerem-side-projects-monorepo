@@ -11,11 +11,19 @@ from sklearn.naive_bayes import MultinomialNB
 from sklearn.pipeline import Pipeline
 from sklearn.svm import LinearSVC
 
-
+from common.clients.google_storage_client import (
+    get_storage_client,
+    GoogleStorageClient,
+    MockStorageClient,
+)
+from common.config import settings
 from common.utils.os_utils import create_directory
 from style.constants import FILE_PATH_BOOK_DS, MODEL_EXPORT_PATH
 from style.dataset.reader import Dataset, DatasetReader
 from style.predict.servable.base import SklearnBasedClassifierServable
+
+
+storage_client = get_storage_client()
 
 
 class TextNormalizer:
@@ -140,6 +148,7 @@ def create_pipeline(
                 strip_accents="unicode",
                 analyzer="word",
                 token_pattern=r"\w{1,}",
+                ngram_range=(1, 1),
                 use_idf=1,
                 smooth_idf=1,
                 sublinear_tf=1,
@@ -196,6 +205,13 @@ def run():
         "--percent", default=1.0, type=float, help="Size of resampling"
     )
 
+    parser.add_argument(
+        "--resampling_percentage",
+        default=1.0,
+        type=float,
+        help="Size of resampling",
+    )
+
     args = parser.parse_args()
     print(args)
     classifiers = [
@@ -207,24 +223,17 @@ def run():
 
     parameters = [
         {
-            "vectorize__ngram_range": [(1, 1), (1, 2), (1, 3)],
             "clf_svc__C": [0.01, 0.1, 1, 10],
         },
         {
-            "vectorize__ngram_range": [(1, 1), (1, 2), (1, 3)],
-            "clf_nb__alpha": [0.1, 0.3, 0.5, 0.8, 0.1],
+            "clf_nb__alpha": [0.1, 0.3, 0.5, 0.8, 1],
         },
         {
-            "vectorize__ngram_range": [(1, 1), (1, 2), (1, 3)],
-            "clf_lg__C": [1e-7, 1e-6, 1e-5, 1e-4, 1e-3, 1e-2, 1e-1, 1e0],
+            "clf_lg__C": [1e-4, 1e-3, 1e-2, 1e-1, 1e0],
         },
         {
-            "vectorize__ngram_range": [(1, 1), (1, 2), (1, 3)],
             "clf_sgd__loss": [
                 "hinge",
-                "log_loss",
-                "modified_huber",
-                "perceptron",
                 "squared_hinge",
             ],
             "clf_sgd__penalty": ["l2", "l1"],
@@ -235,7 +244,8 @@ def run():
     # dataset
     num_books = args.num_books
     document_length = args.document_length
-    percent = args.percent
+    resampling_percentage = args.resampling_percentage
+
     # train model
     cross_validation = args.cross_validation
     # split dataset
@@ -248,7 +258,9 @@ def run():
     dataset = DatasetReader.load_files(
         FILE_PATH_BOOK_DS, n=document_length, num_of_books=num_books
     )
-    dataset = dataset.resample(percent)
+
+    dataset = dataset.resample(resampling_percentage)
+
     print(len(dataset))
     dataset.shuffle()
     docs_train, docs_test, y_train, y_test, dataset_target = split_dataset(
