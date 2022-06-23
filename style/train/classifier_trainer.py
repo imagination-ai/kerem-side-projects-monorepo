@@ -1,5 +1,6 @@
 import csv
 import datetime
+import os
 import tempfile
 from pathlib import PosixPath, Path
 
@@ -277,7 +278,8 @@ def run():
         )
 
         storage_client.upload(
-            path, f"style-resources/figures/{experiment_dir_name}"
+            path,
+            f"style-resources/{experiment_dir_name}/{os.path.basename(path)}",
         )
 
     resampled_dataset.shuffle()
@@ -309,7 +311,8 @@ def run():
         )  # TODO: We need to find best model rather overwriting them.
 
         storage_client.upload(
-            model_export_path, "style-resources" / experiment_dir_name
+            model_export_path,
+            "style-resources" / experiment_dir_name / model_export_path.name,
         )
 
         model_comparison_results[name]["f1-weighted-avg"] = report_dict[
@@ -322,11 +325,11 @@ def run():
         report(report_, name, cm, MODEL_EXPORT_PATH)
         storage_client.upload(
             MODEL_EXPORT_PATH / f"{name}-report.txt",
-            "style-resources" / experiment_dir_name,
+            "style-resources" / experiment_dir_name / f"{name}-report.txt",
         )
         storage_client.upload(
             MODEL_EXPORT_PATH / f"{name}-cm.txt",
-            "style-resources" / experiment_dir_name,
+            "style-resources" / experiment_dir_name / f"{name}-cm.txt",
         )
 
     model_comparison_report(
@@ -334,7 +337,7 @@ def run():
     )
     storage_client.upload(
         MODEL_EXPORT_PATH / "model_comparison_report.tsv",
-        "style-resources" / experiment_dir_name,
+        "style-resources" / experiment_dir_name / "model_comparison_report.tsv",
     )
 
 

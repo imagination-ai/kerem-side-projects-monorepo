@@ -78,26 +78,26 @@ class GoogleStorageClient(BaseStorageClient):
         self.client = storage.Client()
         self.bucket = self.client.bucket(self.bucket_name_or_directory)
 
-    def upload(
-        self, source_file_full_path, destination_filename, enable_public=False
-    ):
-        blob = self.bucket.blob(destination_filename)
-        blob.upload_from_filename(source_file_full_path)
+    def upload(self, source_path, destination_path, enable_public=False):
+        source_path = str(source_path)
+        destination_path = str(destination_path)
+
+        blob = self.bucket.blob(destination_path)
+        blob.upload_from_filename(source_path)
         if enable_public:
             blob.make_public()
             return blob.public_url
 
         return blob.path
 
-    def download(self, source_filename, destination):
-        blob = self.bucket.blob(source_filename)
-        if isinstance(destination, str):
-            full_path = os.path.join(destination, source_filename)
-            blob.download_to_filename(full_path)
-            return full_path
-        else:
-            blob.download_to_file(destination)
-            return destination.name
+    def download(self, source_path, destination_path):
+
+        source_path = str(source_path)
+        destination_path = str(destination_path)
+
+        blob = self.bucket.blob(source_path)
+        blob.download_to_file(destination_path)
+        return destination_path
 
     def list_objects(self, prefix=None):
         return self.client.list_blobs(

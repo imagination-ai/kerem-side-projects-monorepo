@@ -99,6 +99,36 @@ services:
       #- AWS_ACESSS_KEY_ID=AFakeId
       #- DEBUG=${DEBUG- }
 
+  style-trainer:
+    build:
+      context: .
+      target: style_trainer
+      dockerfile: Dockerfile
+    image: imagination-ai/style-trainer
+    volumes:
+      - ./style:/applications/style
+      - ./common:/applications/common
+      - ./style-resources/datasets/book_ds:/applications/style-resources/datasets/book_ds
+      - ./style-resources/models:/applications/style-resources/models
+    ports:
+      - "8000:8000"
+    networks:
+      - backend
+    entrypoint: ["python", '-m',  'style.train.classifier_trainer',  '--document_length',  '500',  '--cross_validation',  '2',  '--test_percentage',  '0.2',  '--min_df',  '3',  '--num_books',  '10']
+    environment:
+      - STORAGE_EMULATOR_HOST=http://mock-cloud-storage:4443
+      - CRAWLER_BUCKET=test-bucket
+      - PARSER_BUCKET=test-bucket
+      - MISC_BUCKET=test-bucket
+      - ENVIRONMENT=dev
+    depends_on:
+      - mock-cloud-storage
+    restart: "no"
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: on-failure
+
 networks:
   backend:
 
