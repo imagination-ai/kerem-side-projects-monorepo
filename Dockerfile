@@ -93,16 +93,8 @@ ENTRYPOINT ["sh", "/applications/inflation-app-entrypoint.sh"]
 FROM style as style_trainer
 RUN pip install jupyterlab
 
-# Fetch the dataset
-#RUN gsutil cp gs://projects-misc/datasets/style-datasets/book_ds.tar.gz .
-#RUN tar -xzvf book_ds.tar.gz
-#RUN cp -r book_ds /applications/style-resources/datasets/book_ds
-#RUN rm book_ds.tar.gz
-
-#RUN tar -xzvf style-datasets/datasets/book_ds.tar.gz
-#RUN rm style-datasets/datasets/book_ds.tar.gz
-
 COPY entrypoints/style-trainer-entrypoint.sh /applications/style-trainer-entrypoint.sh
 WORKDIR /applications
+COPY Makefile .
 
 ENTRYPOINT ["sh", "/applications/style-trainer-entrypoint.sh"]
