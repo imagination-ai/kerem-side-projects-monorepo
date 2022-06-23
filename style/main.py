@@ -6,7 +6,7 @@ from starlette.middleware.cors import CORSMiddleware
 from common.customized_logging import configure_logging
 from style.api.middleware import add_middleware
 from style.api.routers import prediction
-from config import settings
+from common.config import settings
 
 configure_logging()
 logger = logging.getLogger(__name__)

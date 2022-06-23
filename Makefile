@@ -4,7 +4,6 @@ ENV ?= .venv
 RUN = . $(ENV)/bin/activate &&
 GCS_BUCKET = test-bucket
 
-export ENVIRONMENT=local
 
 .venv:
 	virtualenv $(ENV) --python=python3.8
@@ -14,9 +13,7 @@ install: .venv requirements.txt
 	$(RUN) pip install -r requirements.txt
 
 install-dev: install-test
-	#wget https://chromedriver.storage.googleapis.com/98.0.4758.102/chromedriver_mac64.zip
-#	wget https://chromedriver.storage.googleapis.com/101.0.4951.41/chromedriver_mac64.zip
-	wget https://chromedriver.storage.googleapis.com/102.0.5005.61/chromedriver_mac64.zip
+	wget https://chromedriver.storage.googleapis.com/103.0.5060.53/chromedriver_mac64.zip
 	unzip chromedriver_mac64.zip
 	mv chromedriver /usr/local/bin/chromedriver
 	rm chromedriver_mac64.zip
@@ -50,7 +47,7 @@ style-remove-audiobooks:
 	rm audio.txt
 
 style-model_training:
-	$(RUN) python -m style.train.classifier_trainer --document_length 500 --cross_validation 5 --test_percentage 0.2 --min_df 3 --percent 0.5
+	$(RUN) python -m style.train.classifier_trainer --document_length 500 --cross_validation 5 --test_percentage 0.2 --min_df 3 --resampling_percentage 0.5
 
 crawl:
 	$(RUN) python -m inflation.dataset.crawl --excel-path inflation-resources/data/links.xlsx --path inflation-resources/
@@ -61,6 +58,7 @@ clean:
 	rm -rf $(ENV)
 
 test:
+	export ENVIRONMENT=test
 	APP_RESOURCE_DIR='.' PYTHONPATH=$(PWD) pytest style-resources/tests
 	PYTHONPATH=$(PWD) pytest inflation-resources/tests
 

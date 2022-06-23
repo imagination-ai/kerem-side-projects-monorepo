@@ -10,7 +10,11 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 
-from common.clients.google_storage_client import get_storage_client
+from common.clients.google_storage_client import (
+    get_storage_client,
+    GoogleStorageClient,
+    MockStorageClient,
+)
 from common.config import settings
 
 
@@ -113,16 +117,22 @@ class Dataset:
 
 
 def draw_sample_distributions(
-    dataset1: Dataset, dataset2: Dataset, dataset1_label, dataset2_label
+    dataset1: Dataset,
+    dataset2: Dataset,
+    dataset1_label,
+    dataset2_label,
+    tempdir,
 ):
     """
     It is a function that helps to compare how two different samples are distributed.
     It saves the figures.
     Returns: None
 
+    - get a file descriptor
+    - remove all storage client stuff.
+    - write the data.
+    - return the full filepath.
     """
-
-    misc_client = get_storage_client(bucket_name=settings.MISC_BUCKET)
 
     dataset1_prop_val = calculate_author_distributions(dataset1)
     dataset2_prop_val = calculate_author_distributions(dataset2)
@@ -147,14 +157,11 @@ def draw_sample_distributions(
         figsize=(15, 30),
     )
 
-    with tempfile.TemporaryDirectory() as tmpdir:
-        tmpdir_path = Path(tmpdir)
-        suffix = datetime.datetime.now().strftime("%Y-%m-%d-%H-%M")
-        fn = f"distribution-comparison-{suffix}.svg"
-        plt.savefig(tmpdir_path / fn)
-        return misc_client.upload(
-            tmpdir_path / fn, f"style/figures/{fn}", enable_public=False
-        )
+    suffix = datetime.datetime.now().strftime("%Y-%m-%d-%H-%M")
+    fp = Path(tempdir) / f"distribution-comparison-{suffix}.svg"
+    plt.savefig(fp)
+
+    return fp
 
 
 def calculate_author_distributions(dataset: Dataset):

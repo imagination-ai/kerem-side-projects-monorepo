@@ -12,7 +12,7 @@ class CommonSettings(BaseSettings):
 
     @validator("ENVIRONMENT", pre=True)
     def validate_env(cls, v):
-        if v in {"local", "docker", "dev", "stage", "prod"}:
+        if v in {"local", "docker", "dev", "stage", "prod", "test"}:
             return v
 
     class Config:
