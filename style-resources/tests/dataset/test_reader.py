@@ -9,7 +9,7 @@ from style.dataset.reader import (
 import tempfile
 
 
-@pytest.fixture
+@pytest.fixture(scope="module")
 def dataset():
     return DatasetReader.load_files(FILE_PATH_MOCK_DS)
 

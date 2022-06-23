@@ -1,3 +1,4 @@
+from pathlib import Path
 from abc import abstractmethod
 import logging
 import os.path
@@ -32,25 +33,33 @@ class BaseStorageClient:
 
 
 class LocalStorageClient(BaseStorageClient):
-    def upload(
-        self, source_file_full_path, destination_filename, enable_public=False
-    ):
+    """
+    It save files under the working directory.
+    """
 
-        full_dest_path = os.path.join(
-            self.bucket_name_or_directory, destination_filename
-        )
+    def upload(self, source_path, destination_path, enable_public=False):
 
-        os.path.dirname(full_dest_path)
+        destination_path = str(destination_path)
+        source_path = str(source_path)
+        if "." not in destination_path:
+            if "." in source_path:
+                basename = os.path.basename(source_path)
+                destination_path = os.path.join(destination_path, basename)
 
-        "bucket_name_or_directory/style/figures/a.txt"
-        "bucket_name_or_directory/asdfas.txt"
-
-        if os.path.isfile(source_file_full_path):
-            shutil.copyfile(source_file_full_path, destination_filename)
-        elif os.path.isdir(source_file_full_path):
-            shutil.copy(source_file_full_path, destination_filename)
+        if "." in source_path:
+            parent_dir = os.path.dirname(destination_path)
         else:
-            raise ValueError(f"{destination_filename} does not exist!")
+            parent_dir = source_path
+
+        if parent_dir != "":  # check given path directory or not
+            Path(parent_dir).mkdir(parents=True, exist_ok=True)
+
+        if os.path.isfile(source_path):
+            shutil.copyfile(source_path, destination_path)
+        elif os.path.isdir(source_path):
+            shutil.copytree(source_path, destination_path)
+        else:
+            raise ValueError(f"{parent_dir} does not exist!")
 
     def download(self, source_filename, destination):
         return source_filename

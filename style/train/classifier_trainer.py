@@ -1,6 +1,7 @@
 import csv
 import datetime
-from pathlib import PosixPath
+import tempfile
+from pathlib import PosixPath, Path
 
 from sklearn import metrics
 from sklearn.decomposition import TruncatedSVD
@@ -13,17 +14,17 @@ from sklearn.svm import LinearSVC
 
 from common.clients.google_storage_client import (
     get_storage_client,
-    GoogleStorageClient,
-    MockStorageClient,
 )
 from common.config import settings
-from common.utils.os_utils import create_directory
 from style.constants import FILE_PATH_BOOK_DS, MODEL_EXPORT_PATH
-from style.dataset.reader import Dataset, DatasetReader
+from style.dataset.reader import (
+    Dataset,
+    DatasetReader,
+    draw_sample_distributions,
+)
 from style.predict.servable.base import SklearnBasedClassifierServable
 
-
-storage_client = get_storage_client()
+storage_client = get_storage_client(settings.MISC_BUCKET)
 
 
 class TextNormalizer:
@@ -103,8 +104,8 @@ def model_comparison_report(export_path, params, results):
     Returns:
 
     """
-    prefix = datetime.datetime.now().strftime("%Y-%m-%d-%H-%M")
-    with open(export_path / f"{prefix}-model_comparison_report.tsv", "w") as f:
+    # prefix = datetime.datetime.now().strftime("%Y-%m-%d-%H-%M")
+    with open(export_path / "model_comparison_report.tsv", "w") as f:
         tsv_writer = csv.writer(f, delimiter="\t")
         tsv_writer.writerow(["model_name", "f1-score", "ngram"])
         for model_name, values in results.items():
@@ -259,12 +260,29 @@ def run():
         FILE_PATH_BOOK_DS, n=document_length, num_of_books=num_books
     )
 
-    dataset = dataset.resample(resampling_percentage)
+    resampled_dataset = dataset.resample(resampling_percentage)
 
-    print(len(dataset))
-    dataset.shuffle()
+    print(len(resampled_dataset))
+
+    with tempfile.TemporaryDirectory() as tmpdirname:
+        path = draw_sample_distributions(
+            dataset,
+            resampled_dataset,
+            "label_full",
+            "resampled_dataset",
+            tmpdirname,
+        )
+        experiment_dir_name = Path(
+            f"experiment-date-{datetime.datetime.now().strftime('%Y-%m-%d-%H-%M')}"
+        )
+
+        storage_client.upload(
+            path, f"style-resources/figures/{experiment_dir_name}"
+        )
+
+    resampled_dataset.shuffle()
     docs_train, docs_test, y_train, y_test, dataset_target = split_dataset(
-        dataset, test_percentage=test_percentage
+        resampled_dataset, test_percentage=test_percentage
     )
 
     from collections import defaultdict as dd
@@ -272,7 +290,7 @@ def run():
     model_comparison_results = dd(dict)
 
     for (name, clf), params in list(zip(classifiers, parameters)):
-        model_export_path = MODEL_EXPORT_PATH / name
+        model_export_path = MODEL_EXPORT_PATH / (name + ".model")
 
         pipeline = create_pipeline(
             name, clf(), min_df=min_df, normalize=normalize, reduction=reduction
@@ -289,6 +307,11 @@ def run():
         export(
             model, model_export_path
         )  # TODO: We need to find best model rather overwriting them.
+
+        storage_client.upload(
+            model_export_path, "style-resources" / experiment_dir_name
+        )
+
         model_comparison_results[name]["f1-weighted-avg"] = report_dict[
             "weighted avg"
         ]["f1-score"]
@@ -297,8 +320,21 @@ def run():
         ]
         print(f"The best model is written to {model_export_path}")
         report(report_, name, cm, MODEL_EXPORT_PATH)
+        storage_client.upload(
+            MODEL_EXPORT_PATH / f"{name}-report.txt",
+            "style-resources" / experiment_dir_name,
+        )
+        storage_client.upload(
+            MODEL_EXPORT_PATH / f"{name}-cm.txt",
+            "style-resources" / experiment_dir_name,
+        )
+
     model_comparison_report(
         MODEL_EXPORT_PATH, args.__dict__, model_comparison_results
+    )
+    storage_client.upload(
+        MODEL_EXPORT_PATH / "model_comparison_report.tsv",
+        "style-resources" / experiment_dir_name,
     )
 
 
