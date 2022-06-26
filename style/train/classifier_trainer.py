@@ -220,7 +220,6 @@ def run():
     print(args)
     classifiers = [
         ("clf_svc", LinearSVC),
-        ("clf_nb", MultinomialNB),
         ("clf_lg", LogisticRegression),
         ("clf_sgd", SGDClassifier),
     ]
@@ -228,9 +227,6 @@ def run():
     parameters = [
         {
             "clf_svc__C": [0.01, 0.1, 1, 10],
-        },
-        {
-            "clf_nb__alpha": [0.1, 0.3, 0.5, 0.8, 1],
         },
         {
             "clf_lg__C": [1e-4, 1e-3, 1e-2, 1e-1, 1e0],
