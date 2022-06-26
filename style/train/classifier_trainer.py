@@ -63,7 +63,9 @@ def train_sklearn_classification_model(
 
     """
 
-    grid_search = GridSearchCV(pipeline, grid_search_params, n_jobs=-1, cv=cv)
+    grid_search = GridSearchCV(
+        pipeline, grid_search_params, n_jobs=os.cpu_count() - 1, cv=cv
+    )
     grid_search.fit(docs_train, y_train)
     y_predicted = grid_search.predict(docs_test)
 
