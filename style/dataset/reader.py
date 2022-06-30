@@ -115,6 +115,32 @@ class Dataset:
         else:
             return self
 
+    def resample_balanced(self, num_doc):
+        """
+        The method converts an unbalanced sample to a balanced one. It omits an author if that author has smaller number
+         of doc than num_doc argument.
+
+        Args:
+            num_doc: The parameter determines how many documents should represent every author.
+
+        Returns:
+
+        """
+        data = pd.Series(self._data)
+        target = pd.Series(self._target)
+        indices = list(range(0, len(self)))
+        df = pd.DataFrame({"data": data, "target": target}, index=indices)
+
+        resampled_df = pd.DataFrame(columns=["data", "target"])
+
+        for author in set(self._target):
+            author_df = df[df.target == author]
+            if len(author_df) >= num_doc:
+                new_df = author_df.sample(n=num_doc)
+                resampled_df = resampled_df.append(new_df, ignore_index=True)
+
+        return Dataset(resampled_df.data, resampled_df.target)
+
 
 def draw_sample_distributions(
     dataset1: Dataset,

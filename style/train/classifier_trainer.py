@@ -210,6 +210,12 @@ def run():
     )
 
     parser.add_argument(
+        "--num_doc",
+        default=None,
+        type=int,
+        help="It is a Resample_balanced method parameter. It specifies the number of documents for every author should have.",
+    )
+    parser.add_argument(
         "--resampling_percentage",
         default=1.0,
         type=float,
@@ -220,18 +226,18 @@ def run():
     print(args)
     classifiers = [
         ("clf_svc", LinearSVC),
-        ("clf_lg", LogisticRegression),
+        ("clf_nb", MultinomialNB),
         ("clf_sgd", SGDClassifier),
     ]
 
     parameters = [
+        {"vectorize__ngram_range": [(1, 2)], "clf_svc__C": [0.01, 0.1, 1, 10]},
         {
-            "clf_svc__C": [0.01, 0.1, 1, 10],
+            "vectorize__ngram_range": [(1, 2)],
+            "clf_nb__alpha": [0.1, 0.3, 0.5, 0.8, 1],
         },
         {
-            "clf_lg__C": [1e-4, 1e-3, 1e-2, 1e-1, 1e0],
-        },
-        {
+            "vectorize__ngram_range": [(1, 2)],
             "clf_sgd__loss": [
                 "hinge",
                 "squared_hinge",
@@ -244,7 +250,7 @@ def run():
     # dataset
     num_books = args.num_books
     document_length = args.document_length
-    resampling_percentage = args.resampling_percentage
+    # resampling_percentage = args.resampling_percentage
 
     # train model
     cross_validation = args.cross_validation
@@ -254,13 +260,14 @@ def run():
     min_df = args.min_df
     normalize = args.normalize
     reduction = args.reduction
+    num_doc = args.num_doc
 
     dataset = DatasetReader.load_files(
         FILE_PATH_BOOK_DS, n=document_length, num_of_books=num_books
     )
 
-    resampled_dataset = dataset.resample(resampling_percentage)
-
+    # resampled_dataset = dataset.resample(resampling_percentage)
+    resampled_dataset = dataset.resample_balanced(num_doc=num_doc)
     print(len(resampled_dataset))
 
     with tempfile.TemporaryDirectory() as tmpdirname:

@@ -1,3 +1,5 @@
+from collections import Counter
+
 import pytest
 
 from style.constants import FILE_PATH_MOCK_DS
@@ -11,7 +13,7 @@ import tempfile
 
 @pytest.fixture(scope="module")
 def dataset():
-    return DatasetReader.load_files(FILE_PATH_MOCK_DS)
+    return DatasetReader.load_files(FILE_PATH_MOCK_DS, 500)
 
 
 class TestDatasetReader:
@@ -34,6 +36,23 @@ def test_resample(dataset):
     with pytest.raises(AssertionError):
         assert len(dataset.resample(percentage=0))
         assert len(dataset.resample(percentage=3))
+
+
+def test_resample_as_balanced_sampling(dataset):
+    num_doc = 27
+    resampled_dataset = dataset.resample_balanced(num_doc)
+
+    counts = Counter(resampled_dataset.target)
+    assert len(resampled_dataset.target) != 0
+
+    for v in counts.values():
+        assert v == num_doc
+
+    assert "abraham_lincoln" not in set(resampled_dataset.target)
+
+    num_doc = 26
+    resampled_dataset = dataset.resample_balanced(num_doc)
+    assert "abraham_lincoln" in set(resampled_dataset.target)
 
 
 def test_calculate_author_distributions(dataset):
