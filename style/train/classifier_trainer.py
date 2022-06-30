@@ -220,18 +220,18 @@ def run():
     print(args)
     classifiers = [
         ("clf_svc", LinearSVC),
-        ("clf_lg", LogisticRegression),
+        ("clf_nb", MultinomialNB),
         ("clf_sgd", SGDClassifier),
     ]
 
     parameters = [
+        {"vectorize__ngram_range": [(1, 2)], "clf_svc__C": [0.01, 0.1, 1, 10]},
         {
-            "clf_svc__C": [0.01, 0.1, 1, 10],
+            "vectorize__ngram_range": [(1, 2)],
+            "clf_nb__alpha": [0.1, 0.3, 0.5, 0.8, 1],
         },
         {
-            "clf_lg__C": [1e-4, 1e-3, 1e-2, 1e-1, 1e0],
-        },
-        {
+            "vectorize__ngram_range": [(1, 2)],
             "clf_sgd__loss": [
                 "hinge",
                 "squared_hinge",
