@@ -2,7 +2,7 @@ from collections import Counter
 
 import pytest
 
-from style.constants import FILE_PATH_MOCK_DS, FILE_PATH_BOOK_DS
+from style.constants import FILE_PATH_MOCK_DS
 from style.dataset.reader import (
     DatasetReader,
     calculate_author_distributions,
@@ -14,12 +14,6 @@ import tempfile
 @pytest.fixture(scope="module")
 def dataset():
     return DatasetReader.load_files(FILE_PATH_MOCK_DS, 500)
-
-
-#
-# @pytest.fixture(scope="module")
-# def full_dataset():
-#     return DatasetReader.load_files(FILE_PATH_BOOK_DS)
 
 
 class TestDatasetReader:
@@ -45,12 +39,20 @@ def test_resample(dataset):
 
 
 def test_resample_as_balanced_sampling(dataset):
-    num_doc = 10
+    num_doc = 27
     resampled_dataset = dataset.resample_balanced(num_doc)
 
     counts = Counter(resampled_dataset.target)
+    assert len(resampled_dataset.target) != 0
+
     for v in counts.values():
         assert v == num_doc
+
+    assert "abraham_lincoln" not in set(resampled_dataset.target)
+
+    num_doc = 26
+    resampled_dataset = dataset.resample_balanced(num_doc)
+    assert "abraham_lincoln" in set(resampled_dataset.target)
 
 
 def test_calculate_author_distributions(dataset):

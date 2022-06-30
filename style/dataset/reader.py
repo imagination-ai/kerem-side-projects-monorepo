@@ -137,7 +137,7 @@ class Dataset:
             author_df = df[df.target == author]
             if len(author_df) >= num_doc:
                 new_df = author_df.sample(n=num_doc)
-                resampled_df.append(new_df, ignore_index=True)
+                resampled_df = resampled_df.append(new_df, ignore_index=True)
 
         return Dataset(resampled_df.data, resampled_df.target)
 
