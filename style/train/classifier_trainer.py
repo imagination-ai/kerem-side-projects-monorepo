@@ -16,7 +16,7 @@ from sklearn.svm import LinearSVC
 from common.clients.google_storage_client import (
     get_storage_client,
 )
-from common.config import settings
+from style.config import style_app_settings
 from style.constants import FILE_PATH_BOOK_DS, MODEL_EXPORT_PATH
 from style.dataset.reader import (
     Dataset,
@@ -25,7 +25,7 @@ from style.dataset.reader import (
 )
 from style.predict.servable.base import SklearnBasedClassifierServable
 
-storage_client = get_storage_client(settings.MISC_BUCKET)
+storage_client = get_storage_client(style_app_settings.MISC_BUCKET)
 
 
 class TextNormalizer:
@@ -185,12 +185,20 @@ def run():
     parser.add_argument(
         "--document_length",
         type=int,
+        default=style_app_settings.DOCUMENT_LENGTH,
         help="Number of words that a document contains",
     )
-    parser.add_argument("--test_percentage", type=float)
+    parser.add_argument(
+        "--test_percentage",
+        type=float,
+        default=style_app_settings.TEST_PERCENTAGE,
+    )
 
     parser.add_argument(
-        "--cross_validation", type=int, help="argument for grid search"
+        "--cross_validation",
+        type=int,
+        default=style_app_settings.CROSS_VALIDATION,
+        help="argument for grid search",
     )
     parser.add_argument(
         "--normalize", action="store_true", help="Normalize text"
@@ -203,6 +211,7 @@ def run():
     parser.add_argument(
         "--min_df",
         type=int,
+        default=style_app_settings.MIN_DF,
         help="means ignore terms that appear in less than 5 documents or ignore terms that appear in less than 1% of the documents",
     )
     parser.add_argument(
@@ -211,7 +220,7 @@ def run():
 
     parser.add_argument(
         "--num_doc",
-        default=None,
+        default=style_app_settings.NUM_DOC,
         type=int,
         help="It is a Resample_balanced method parameter. It specifies the number of documents for every author should have.",
     )
@@ -270,22 +279,25 @@ def run():
     resampled_dataset = dataset.resample_balanced(num_doc=num_doc)
     print(len(resampled_dataset))
 
-    with tempfile.TemporaryDirectory() as tmpdirname:
-        path = draw_sample_distributions(
-            dataset,
-            resampled_dataset,
-            "label_full",
-            "resampled_dataset",
-            tmpdirname,
-        )
-        experiment_dir_name = Path(
-            f"experiment-date-{datetime.datetime.now().strftime('%Y-%m-%d-%H-%M')}"
-        )
+    experiment_dir_name = Path(
+        f"experiment-date-{datetime.datetime.now().strftime('%Y-%m-%d-%H-%M')}"
+    )
 
-        storage_client.upload(
-            path,
-            f"style-resources/{experiment_dir_name}/{os.path.basename(path)}",
-        )
+    # with tempfile.TemporaryDirectory() as tmpdirname:
+    # # sampling distribution path
+    # path = draw_sample_distributions(
+    #     dataset,
+    #     resampled_dataset,
+    #     "label_full",
+    #     "resampled_dataset",
+    #     tmpdirname,
+    # )
+
+    # Upload sampling distributions comparison graph
+    # storage_client.upload(
+    #     path,
+    #     f"style-resources/{experiment_dir_name}/{os.path.basename(path)}",
+    # )
 
     resampled_dataset.shuffle()
     docs_train, docs_test, y_train, y_test, dataset_target = split_dataset(
