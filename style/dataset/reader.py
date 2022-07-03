@@ -4,26 +4,19 @@ import glob
 from pathlib import Path
 import random
 from random import shuffle
-import tempfile
 
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 
-from common.clients.google_storage_client import (
-    get_storage_client,
-    GoogleStorageClient,
-    MockStorageClient,
-)
-from common.config import settings
-
 
 class DatasetReader:
     @staticmethod
-    def load_files(container_path, n: int = 500, num_of_books=None):
+    def load_files(dataset_directory_path, n: int = 500, num_of_books=None):
         """Load book files with author names as categories via subfolder names.
 
-        It assumes container folders stored a two levels folder structure such as the following
+        It assumes container folders stored a two levels folder structure such as the
+        following
             container_folder/
                 author_1_folder/
                     book_1.txt
@@ -34,14 +27,22 @@ class DatasetReader:
                   book_55.txt
         Args:
             n: split the books by n.
-            container_path:
+            dataset_directory_path:
 
         Returns:
 
         """
         # authors' names are label at the same time folder names
         filenames = sorted(
-            glob.glob(f"{container_path}/*/*.txt", recursive=True)
+            glob.glob(f"{dataset_directory_path}/*/*.txt", recursive=True)
+        )
+
+        assert (
+            len(filenames) != 0
+        ), "Check your filepath. Could not find any data!"
+        print(
+            f"The number of files found {len(filenames)} at {dataset_directory_path}. "
+            f"First 5 here: {filenames[:5]}"
         )
 
         if num_of_books is not None:
@@ -117,11 +118,13 @@ class Dataset:
 
     def resample_balanced(self, num_doc):
         """
-        The method converts an unbalanced sample to a balanced one. It omits an author if that author has smaller number
+        The method converts an unbalanced sample to a balanced one. It omits an author
+        if that author has smaller number
          of doc than num_doc argument.
 
         Args:
-            num_doc: The parameter determines how many documents should represent every author.
+            num_doc: The parameter determines how many documents should represent
+            every author.
 
         Returns:
 
@@ -192,7 +195,8 @@ def draw_sample_distributions(
 
 def calculate_author_distributions(dataset: Dataset):
     """
-    It takes a Dataset and returns the proportional value representing each author in the dataset.
+    It takes a Dataset and returns the proportional value representing each author in
+    the dataset.
     Args:
         dataset:
 
