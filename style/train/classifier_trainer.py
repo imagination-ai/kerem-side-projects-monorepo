@@ -1,13 +1,13 @@
+from collections import defaultdict as dd
 import csv
 import datetime
 import os
-import tempfile
-from pathlib import PosixPath, Path
+from pathlib import Path, PosixPath
 
 from sklearn import metrics
 from sklearn.decomposition import TruncatedSVD
 from sklearn.feature_extraction.text import TfidfVectorizer
-from sklearn.linear_model import LogisticRegression, SGDClassifier
+from sklearn.linear_model import SGDClassifier
 from sklearn.model_selection import GridSearchCV, train_test_split
 from sklearn.naive_bayes import MultinomialNB
 from sklearn.pipeline import Pipeline
@@ -21,7 +21,6 @@ from style.constants import FILE_PATH_BOOK_DS, MODEL_EXPORT_PATH
 from style.dataset.reader import (
     Dataset,
     DatasetReader,
-    draw_sample_distributions,
 )
 from style.predict.servable.base import SklearnBasedClassifierServable
 
@@ -58,7 +57,8 @@ def train_sklearn_classification_model(
     """This method trains multiple models via GridSearchCV and it creates a servable
     from the best model.
 
-    See https://scikit-learn.org/stable/tutorial/statistical_inference/putting_together.html for more details.
+    See https://scikit-learn.org/stable/tutorial/statistical_inference
+    /putting_together.html for more details.
 
 
     """
@@ -212,17 +212,24 @@ def run():
         "--min_df",
         type=int,
         default=style_app_settings.MIN_DF,
-        help="means ignore terms that appear in less than 5 documents or ignore terms that appear in less than 1% of the documents",
+        help="means ignore terms that appear in less than 5 documents or ignore terms "
+        "that appear in less than 1% of the documents",
     )
+
     parser.add_argument(
-        "--percent", default=1.0, type=float, help="Size of resampling"
+        "--ngram_min", default=style_app_settings.NGRAM_MIN, type=int
+    )
+
+    parser.add_argument(
+        "--ngram_max", default=style_app_settings.NGRAM_MAX, type=int
     )
 
     parser.add_argument(
         "--num_doc",
         default=style_app_settings.NUM_DOC,
         type=int,
-        help="It is a Resample_balanced method parameter. It specifies the number of documents for every author should have.",
+        help="It is a Resample_balanced method parameter. It specifies the number of "
+        "documents for every author should have.",
     )
     parser.add_argument(
         "--resampling_percentage",
@@ -233,33 +240,11 @@ def run():
 
     args = parser.parse_args()
     print(args)
-    classifiers = [
-        ("clf_svc", LinearSVC),
-        ("clf_nb", MultinomialNB),
-        ("clf_sgd", SGDClassifier),
-    ]
-
-    parameters = [
-        {"vectorize__ngram_range": [(1, 2)], "clf_svc__C": [0.01, 0.1, 1, 10]},
-        {
-            "vectorize__ngram_range": [(1, 2)],
-            "clf_nb__alpha": [0.1, 0.3, 0.5, 0.8, 1],
-        },
-        {
-            "vectorize__ngram_range": [(1, 2)],
-            "clf_sgd__loss": [
-                "hinge",
-                "squared_hinge",
-            ],
-            "clf_sgd__penalty": ["l2", "l1"],
-        },
-    ]
 
     # argparse
     # dataset
     num_books = args.num_books
     document_length = args.document_length
-    # resampling_percentage = args.resampling_percentage
 
     # train model
     cross_validation = args.cross_validation
@@ -271,44 +256,64 @@ def run():
     reduction = args.reduction
     num_doc = args.num_doc
 
+    ngram_min = args.ngram_min
+    ngram_max = args.ngram_max
+
+    classifiers = [
+        ("clf_svc", LinearSVC),
+        ("clf_nb", MultinomialNB),
+        ("clf_sgd", SGDClassifier),
+    ]
+
+    ngram_range = (ngram_min, ngram_max)
+
+    parameters = [
+        {
+            "vectorize__ngram_range": [ngram_range],
+            "clf_svc__C": [0.01, 0.1, 1, 10],
+        },
+        {
+            "vectorize__ngram_range": [ngram_range],
+            "clf_nb__alpha": [0.1, 0.3, 0.5, 0.8, 1],
+        },
+        {
+            "vectorize__ngram_range": [ngram_range],
+            "clf_sgd__loss": [
+                "hinge",
+                "squared_hinge",
+            ],
+            "clf_sgd__penalty": ["l2", "l1"],
+        },
+    ]
+
     dataset = DatasetReader.load_files(
         FILE_PATH_BOOK_DS, n=document_length, num_of_books=num_books
     )
 
-    # resampled_dataset = dataset.resample(resampling_percentage)
     resampled_dataset = dataset.resample_balanced(num_doc=num_doc)
-    print(len(resampled_dataset))
 
-    experiment_dir_name = Path(
+    exp_name = (
         f"experiment-date-{datetime.datetime.now().strftime('%Y-%m-%d-%H-%M')}"
     )
+    experiment_dir_name = Path(exp_name)
 
-    # with tempfile.TemporaryDirectory() as tmpdirname:
-    # # sampling distribution path
-    # path = draw_sample_distributions(
-    #     dataset,
-    #     resampled_dataset,
-    #     "label_full",
-    #     "resampled_dataset",
-    #     tmpdirname,
-    # )
+    print(
+        f"The total data size: {len(resampled_dataset)}. Experiment name: {exp_name}"
+    )
 
-    # Upload sampling distributions comparison graph
-    # storage_client.upload(
-    #     path,
-    #     f"style-resources/{experiment_dir_name}/{os.path.basename(path)}",
-    # )
-
-    resampled_dataset.shuffle()
     docs_train, docs_test, y_train, y_test, dataset_target = split_dataset(
         resampled_dataset, test_percentage=test_percentage
     )
 
-    from collections import defaultdict as dd
+    print(
+        f"Size of the training data: {docs_train.shape} and size of the test "
+        f"data {docs_test.shape}"
+    )
 
     model_comparison_results = dd(dict)
 
     for (name, clf), params in list(zip(classifiers, parameters)):
+        print(f"Parameter Search started for {name} with {params}")
         model_export_path = MODEL_EXPORT_PATH / (name + ".model")
 
         pipeline = create_pipeline(
@@ -323,9 +328,9 @@ def run():
             params,
             cv=cross_validation,
         )
-        export(
-            model, model_export_path
-        )  # TODO: We need to find best model rather overwriting them.
+
+        print(f"Parameter Search finished for {name} with {params}")
+        export(model, model_export_path)
 
         storage_client.upload(
             model_export_path,
@@ -338,24 +343,40 @@ def run():
         model_comparison_results[name]["best-ngram"] = model.get_params()[
             "vectorize__ngram_range"
         ]
-        print(f"The best model is written to {model_export_path}")
+        print(f"The best model is written for {name} {model_export_path}")
+
         report(report_, name, cm, MODEL_EXPORT_PATH)
-        storage_client.upload(
-            MODEL_EXPORT_PATH / f"{name}-report.txt",
+
+        report_output_path = (
             "style-resources" / experiment_dir_name / f"{name}-report.txt",
         )
         storage_client.upload(
-            MODEL_EXPORT_PATH / f"{name}-cm.txt",
-            "style-resources" / experiment_dir_name / f"{name}-cm.txt",
+            MODEL_EXPORT_PATH / f"{name}-report.txt", report_output_path
         )
+        print(f"Report is written to {report_output_path}")
+
+        confusion_matrix_output_path = (
+            "style-resources" / experiment_dir_name / f"{name}-cm.txt"
+        )
+        storage_client.upload(
+            MODEL_EXPORT_PATH / f"{name}-cm.txt", confusion_matrix_output_path
+        )
+        print(f"Confusion matrix is written to {confusion_matrix_output_path}")
 
     model_comparison_report(
         MODEL_EXPORT_PATH, args.__dict__, model_comparison_results
     )
-    storage_client.upload(
-        MODEL_EXPORT_PATH / "model_comparison_report.tsv",
+
+    model_comparison_report_path = (
         "style-resources" / experiment_dir_name / "model_comparison_report.tsv",
     )
+    storage_client.upload(
+        MODEL_EXPORT_PATH / "model_comparison_report.tsv",
+        model_comparison_report_path,
+    )
+
+    print(f"Model Comparison is written to {model_comparison_report_path}")
+    print("Training & grid search & finding the best model is done.")
 
 
 if __name__ == "__main__":

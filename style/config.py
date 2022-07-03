@@ -8,6 +8,8 @@ class StyleAppSettings(CommonSettings):
     TEST_PERCENTAGE: float = 0.2
     MIN_DF: int = 1
     NUM_DOC: int = 100
+    NGRAM_MIN: int = 1
+    NGRAM_MAX: int = 2
 
 
 style_app_settings = StyleAppSettings(_env_file=".env")
