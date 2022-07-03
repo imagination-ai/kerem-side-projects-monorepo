@@ -114,7 +114,7 @@ services:
       - "8000:8000"
     networks:
       - backend
-    entrypoint: ["python", '-m',  'style.train.classifier_trainer',  '--document_length',  '500',  '--cross_validation',  '2',  '--test_percentage',  '0.2',  '--min_df',  '3',  '--num_books',  '10']
+    entrypoint: ["python", '-m',  'style.train.classifier_trainer']
     environment:
       - STORAGE_EMULATOR_HOST=http://mock-cloud-storage:4443
       - CRAWLER_BUCKET=test-bucket

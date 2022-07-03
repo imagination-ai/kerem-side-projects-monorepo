@@ -271,6 +271,7 @@ def run():
     reduction = args.reduction
     num_doc = args.num_doc
 
+    print(FILE_PATH_BOOK_DS)
     dataset = DatasetReader.load_files(
         FILE_PATH_BOOK_DS, n=document_length, num_of_books=num_books
     )
