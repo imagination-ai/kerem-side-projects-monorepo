@@ -348,7 +348,7 @@ def run():
         report(report_, name, cm, MODEL_EXPORT_PATH)
 
         report_output_path = (
-            "style-resources" / experiment_dir_name / f"{name}-report.txt",
+            "style-resources" / experiment_dir_name / f"{name}-report.txt"
         )
         storage_client.upload(
             MODEL_EXPORT_PATH / f"{name}-report.txt", report_output_path
@@ -368,8 +368,9 @@ def run():
     )
 
     model_comparison_report_path = (
-        "style-resources" / experiment_dir_name / "model_comparison_report.tsv",
+        "style-resources" / experiment_dir_name / "model_comparison_report.tsv"
     )
+
     storage_client.upload(
         MODEL_EXPORT_PATH / "model_comparison_report.tsv",
         model_comparison_report_path,
