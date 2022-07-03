@@ -97,5 +97,4 @@ COPY entrypoints/style-trainer-entrypoint.sh /applications/style-trainer-entrypo
 WORKDIR /applications
 COPY Makefile .
 
-#ENTRYPOINT ["sh", "/applications/style-trainer-entrypoint.sh"]
-ENTRYPOINT ["python", "-m", "style.train.classifier_trainer"]
+ENTRYPOINT ["sh", "/applications/style-trainer-entrypoint.sh"]
