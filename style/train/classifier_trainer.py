@@ -52,8 +52,10 @@ def train_sklearn_classification_model(
     y_test,
     pipeline: Pipeline,
     grid_search_params: dict,
+    n_jobs: int,
     cv: int = 5,
 ):
+
     """This method trains multiple models via GridSearchCV and it creates a servable
     from the best model.
 
@@ -64,7 +66,7 @@ def train_sklearn_classification_model(
     """
 
     grid_search = GridSearchCV(
-        pipeline, grid_search_params, n_jobs=os.cpu_count() - 1, cv=cv
+        pipeline, grid_search_params, n_jobs=n_jobs, cv=cv
     )
     grid_search.fit(docs_train, y_train)
     y_predicted = grid_search.predict(docs_test)
@@ -237,6 +239,12 @@ def run():
         type=float,
         help="Size of resampling",
     )
+    parser.add_argument(
+        "--n_jobs",
+        default=style_app_settings.N_JOBS,
+        type=int,
+        help="It is an integer, specifying the maximum number of concurrently running workers.",
+    )
 
     args = parser.parse_args()
     print(args)
@@ -248,6 +256,7 @@ def run():
 
     # train model
     cross_validation = args.cross_validation
+    num_job = args.n_jobs
     # split dataset
     test_percentage = args.test_percentage
     # under pipeline
@@ -326,6 +335,7 @@ def run():
             y_test,
             pipeline,
             params,
+            n_jobs=num_job,
             cv=cross_validation,
         )
 
