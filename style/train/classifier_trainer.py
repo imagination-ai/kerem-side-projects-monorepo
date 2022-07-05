@@ -6,7 +6,8 @@ from pathlib import Path, PosixPath
 
 from sklearn import metrics
 from sklearn.decomposition import TruncatedSVD
-from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.feature_extraction.text import TfidfVectorizer, HashingVectorizer
+
 from sklearn.linear_model import SGDClassifier
 from sklearn.model_selection import GridSearchCV, train_test_split
 from sklearn.naive_bayes import MultinomialNB
@@ -55,7 +56,6 @@ def train_sklearn_classification_model(
     n_jobs: int,
     cv: int = 5,
 ):
-
     """This method trains multiple models via GridSearchCV and it creates a servable
     from the best model.
 
@@ -138,28 +138,56 @@ def export(model, export_path):
     SklearnBasedClassifierServable(model=model).export(export_path)
 
 
+def get_vectorizer(vectorizer: str, min_df, n_features):
+    """
+
+    Args:
+        min_df: This parameter specifies tf-idf min_df paramater. It only will use when tf-idf vectorizer is selected.
+        n_features:
+
+    Returns:
+
+    """
+    if vectorizer == "tf-idf":
+
+        return TfidfVectorizer(
+            min_df=min_df,
+            max_features=None,
+            strip_accents="unicode",
+            analyzer="word",
+            token_pattern=r"\w{1,}",
+            ngram_range=(1, 1),
+            use_idf=1,
+            smooth_idf=1,
+            sublinear_tf=1,
+            stop_words="english",
+        )
+
+    elif vectorizer == "hashing-vectorizer":
+
+        return HashingVectorizer(
+            n_features=n_features,
+            analyzer="word",
+            stop_words="english",
+            token_pattern=r"\w{1,}",
+            ngram_range=(1, 1),
+            alternate_sign=False,
+        )
+
+
 def create_pipeline(
     clf_name,
     estimator,
+    vectorizer,
     normalize=False,
     reduction=False,
     min_df=3,
+    n_features=2 ** 20,
 ):
     steps = [
         (
             "vectorize",
-            TfidfVectorizer(
-                min_df=min_df,
-                max_features=None,
-                strip_accents="unicode",
-                analyzer="word",
-                token_pattern=r"\w{1,}",
-                ngram_range=(1, 1),
-                use_idf=1,
-                smooth_idf=1,
-                sublinear_tf=1,
-                stop_words="english",
-            ),
+            get_vectorizer(vectorizer, min_df, n_features),
         )
     ]
 
@@ -246,6 +274,12 @@ def run():
         help="It is an integer, specifying the maximum number of concurrently running workers.",
     )
 
+    parser.add_argument(
+        "--vectorizer",
+        default=style_app_settings.VECTORIZER,
+    )
+
+    parser.add_argument("--n_features", default=style_app_settings.N_FEATURES)
     args = parser.parse_args()
     print(args)
 
@@ -267,6 +301,9 @@ def run():
 
     ngram_min = args.ngram_min
     ngram_max = args.ngram_max
+
+    vectorizer = args.vectorizer
+    n_features = args.n_features
 
     classifiers = [
         ("clf_svc", LinearSVC),
@@ -326,7 +363,13 @@ def run():
         model_export_path = MODEL_EXPORT_PATH / (name + ".model")
 
         pipeline = create_pipeline(
-            name, clf(), min_df=min_df, normalize=normalize, reduction=reduction
+            name,
+            clf(),
+            vectorizer=vectorizer,
+            min_df=min_df,
+            normalize=normalize,
+            reduction=reduction,
+            n_features=n_features,
         )
         model, report_, report_dict, cm = train_sklearn_classification_model(
             docs_train,
