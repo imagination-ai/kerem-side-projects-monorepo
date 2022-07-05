@@ -91,7 +91,6 @@ ENTRYPOINT ["sh", "/applications/inflation-app-entrypoint.sh"]
 
 ##### Leaf image: Style trainer
 FROM style as style_trainer
-RUN pip install jupyterlab
 
 COPY entrypoints/style-trainer-entrypoint.sh /applications/style-trainer-entrypoint.sh
 WORKDIR /applications

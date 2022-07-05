@@ -1,5 +1,5 @@
 flake8
-black
+black==22.6.0
 isort
 pytest
 pytest-mock
