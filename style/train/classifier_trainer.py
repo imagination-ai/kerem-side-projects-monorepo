@@ -61,8 +61,6 @@ def train_sklearn_classification_model(
 
     See https://scikit-learn.org/stable/tutorial/statistical_inference
     /putting_together.html for more details.
-
-
     """
 
     grid_search = GridSearchCV(
@@ -182,7 +180,7 @@ def create_pipeline(
     normalize=False,
     reduction=False,
     min_df=3,
-    n_features=2 ** 20,
+    n_features=2**20,
 ):
     steps = [
         (

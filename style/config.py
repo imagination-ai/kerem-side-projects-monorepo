@@ -14,7 +14,7 @@ class StyleAppSettings(CommonSettings):
     NGRAM_MAX: int = 2
     N_JOBS: int = os.cpu_count() - 1
     VECTORIZER: str = "hashing-vectorizer"  # or 'tf-idf'
-    N_FEATURES = 2 ** 20
+    N_FEATURES = 2**20
 
 
 style_app_settings = StyleAppSettings(_env_file=".env")
