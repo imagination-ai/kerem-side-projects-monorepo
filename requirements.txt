@@ -1,6 +1,6 @@
 # common
 requests
-selenium
+selenium==4.2.0
 beautifulsoup4
 
 # style app reqs
