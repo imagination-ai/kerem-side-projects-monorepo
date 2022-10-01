@@ -19,12 +19,8 @@ logger = logging.getLogger(__name__)
 
 app = FastAPI()
 cm = CrawlerManager(CRAWLERS)
-crawler_client = get_storage_client(
-    bucket_name=inflation_app_settings.CRAWLER_BUCKET
-)
-parser_client = get_storage_client(
-    bucket_name=inflation_app_settings.PARSER_BUCKET
-)
+crawler_client = get_storage_client(inflation_app_settings.CRAWLER_BUCKET)
+parser_client = get_storage_client(inflation_app_settings.PARSER_BUCKET)
 pm = ParserManager(PARSERS)
 
 OUTPUT_PATH_DIR = "/build/data"
@@ -32,10 +28,12 @@ CRAWLER_OUTPUT_DIR = f"{OUTPUT_PATH_DIR}/crawler"
 PARSER_OUTPUT_DIR = f"{OUTPUT_PATH_DIR}/parser"
 
 logger.info(
-    f"Starting the application with -- Crawlers:{CRAWLERS}, Bucket Name:{inflation_app_settings.CRAWLER_BUCKET}"
+    f"Starting the application with -- Crawlers:{CRAWLERS}, Bucket Name:"
+    f"{inflation_app_settings.CRAWLER_BUCKET}"
 )
 logger.info(
-    f"Starting the application with -- Parsers:{PARSERS}, Bucket Name:{inflation_app_settings.PARSER_BUCKET}"
+    f"Starting the application with -- Parsers:{PARSERS}, Bucket Name:"
+    f"{inflation_app_settings.PARSER_BUCKET}"
 )
 
 
@@ -74,7 +72,8 @@ def fetch_inflation_data(excel_path, output_path, filename):
 
     crawler_client.upload(inflation_fn, basename)
     logger.info(
-        f"Crawling done for {excel_path}: {inflation_app_settings.CRAWLER_BUCKET}/{basename}"
+        f"Crawling done for {excel_path}: {inflation_app_settings.CRAWLER_BUCKET}/"
+        f"{basename}"
     )
 
 
@@ -94,7 +93,8 @@ def parse_inflation_data(source_filename, output_file_path, filename):
     basename = os.path.basename(parsed_inflation_data_fn)
     parser_client.upload(parsed_inflation_data_fn, basename)
     logger.info(
-        f"Uploading {parsed_inflation_data_fn} InflationDataset obj to "  # not always upload Inflation dataset. I should correct that.
+        f"Uploading {parsed_inflation_data_fn} InflationDataset obj to "  # not always
+        # upload Inflation dataset. I should correct that.
         f"{inflation_app_settings.PARSER_BUCKET}/{basename}"
     )
 
@@ -156,7 +156,8 @@ async def parse_data(background_tasks: BackgroundTasks, source_filename):
     )
     return {
         "success": True,
-        "message": f"{inflation_app_settings.PARSER_BUCKET}/{source_filename} is preparing. Output will be "
+        "message": f"{inflation_app_settings.PARSER_BUCKET}/{source_filename} is "
+        f"preparing. Output will be "
         f"{filename}",
         "data": {
             "bucket": inflation_app_settings.PARSER_BUCKET,
