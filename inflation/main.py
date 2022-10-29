@@ -151,12 +151,14 @@ async def fetch_data_async(
 
 
 @app.get("/Parse", tags=["Parse"])
-async def parse_data(background_tasks: BackgroundTasks, source_filename):
-    logger.info(f"Received parse request for {source_filename}")
+async def parse_data(source_filename):
+    logger.info(f"Received parse request for {source_filename}.")
     filename = f"{datetime.now().strftime('%Y-%m-%d')}.parse.tsv"
-    background_tasks.add_task(
-        parse_inflation_data, source_filename, PARSER_OUTPUT_DIR, filename
-    )
+    # background_tasks.add_task(
+    #     parse_inflation_data, source_filename, PARSER_OUTPUT_DIR, filename
+    # )
+
+    parse_inflation_data(source_filename, PARSER_OUTPUT_DIR, filename)
     return {
         "success": True,
         "message": f"{inflation_app_settings.PARSER_BUCKET}/{source_filename} is "
