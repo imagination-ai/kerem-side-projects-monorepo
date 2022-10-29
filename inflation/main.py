@@ -78,10 +78,12 @@ def fetch_inflation_data(excel_path, output_path, filename):
 
 
 def parse_inflation_data(source_filename, output_file_path, filename):
+    logger.info(f"Parsing {source_filename} has been started.")
     _, suffix = os.path.splitext(source_filename)
     with tempfile.NamedTemporaryFile(suffix=suffix) as tmpfile:
         crawler_client.download(source_filename, tmpfile)
         tmpfile.flush()
+        logger.info(f"Downloading {source_filename} done.")
 
         parsed_inflation_data_fn = pm.start_parsing(
             tmpfile.name, output_file_path, filename
@@ -150,6 +152,7 @@ async def fetch_data_async(
 
 @app.get("/Parse", tags=["Parse"])
 async def parse_data(background_tasks: BackgroundTasks, source_filename):
+    logger.info(f"Received parse request for {source_filename}")
     filename = f"{datetime.now().strftime('%Y-%m-%d')}.parse.tsv"
     background_tasks.add_task(
         parse_inflation_data, source_filename, PARSER_OUTPUT_DIR, filename
@@ -157,7 +160,7 @@ async def parse_data(background_tasks: BackgroundTasks, source_filename):
     return {
         "success": True,
         "message": f"{inflation_app_settings.PARSER_BUCKET}/{source_filename} is "
-        f"preparing. Output will be "
+        f"preparing. Output will be stored on"
         f"{filename}",
         "data": {
             "bucket": inflation_app_settings.PARSER_BUCKET,
