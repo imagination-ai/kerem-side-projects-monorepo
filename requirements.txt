@@ -7,7 +7,7 @@ beautifulsoup4
 scikit_learn
 urlpath
 dill
-gunicorn
+gunicorn==20.1.0
 numpy
 fastapi
 uvicorn

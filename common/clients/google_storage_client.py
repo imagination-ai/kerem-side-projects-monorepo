@@ -96,7 +96,7 @@ class GoogleStorageClient(BaseStorageClient):
         destination_path = str(destination_path)
 
         blob = self.bucket.blob(source_path)
-        blob.download_to_file(destination_path)
+        blob.download_to_filename(destination_path)
         return destination_path
 
     def list_objects(self, prefix=None):

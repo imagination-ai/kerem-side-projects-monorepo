@@ -81,7 +81,7 @@ def parse_inflation_data(source_filename, output_file_path, filename):
     logger.info(f"Parsing {source_filename} has been started.")
     _, suffix = os.path.splitext(source_filename)
     with tempfile.NamedTemporaryFile(suffix=suffix) as tmpfile:
-        crawler_client.download(source_filename, tmpfile)
+        crawler_client.download(source_filename, tmpfile.name)
         tmpfile.flush()
         logger.info(f"Downloading {source_filename} done.")
 
