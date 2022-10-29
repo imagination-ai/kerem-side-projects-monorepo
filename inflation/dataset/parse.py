@@ -371,7 +371,7 @@ class MigrosParser(Parser):
 
     @staticmethod
     def _get_soup(soup):
-        soup = soup.find("script", type="application/json+ld")
+        soup = soup.find("script", type="application/ld+json")
         page_json = json.loads(
             soup.string
         )  # json contains all related information
