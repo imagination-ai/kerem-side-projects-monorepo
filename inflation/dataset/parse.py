@@ -316,8 +316,10 @@ class A101Parser(Parser):
         elif availability == A101Parser.ITEM_NOT_IN_STOCK:
             return False
         else:
-            print(availability)
-            raise TypeError
+            logger.error(availability)
+            raise TypeError(
+                "Availability possible values are changed. Adapt the code."
+            )
 
     @staticmethod
     def _convert_sample_date(date: str):

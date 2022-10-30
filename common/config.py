@@ -20,4 +20,3 @@ class CommonSettings(BaseSettings):
 
 
 settings = CommonSettings(_env_file=".env")
-print(settings)

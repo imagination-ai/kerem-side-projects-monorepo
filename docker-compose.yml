@@ -44,7 +44,11 @@ services:
     depends_on:
       - mock-cloud-storage
 #    entrypoint: ["sleep", "3600"]
-    entrypoint: ["python", "/applications/inflation/main.py"]
+#    entrypoint: ["python", "/applications/inflation/main.py"]
+    entrypoint: [ "gunicorn", 'inflation.main:app', '--reload', '--bind', '0.0.0.0:8000',
+    '--log-level', 'info', '--access-logfile', '-',
+    '-k', 'uvicorn.workers.UvicornWorker',
+    ]
     deploy:
       replicas: 1
       restart_policy:

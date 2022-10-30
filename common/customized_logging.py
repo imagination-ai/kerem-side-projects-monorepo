@@ -37,6 +37,16 @@ def configure_logging():
                 "level": "INFO",
                 "propagate": True,
             },
+            "uvicorn": {
+                "handlers": ["default"],
+                "level": "INFO",
+                "propagate": True,
+            },
+            "gunicorn": {
+                "handlers": ["default"],
+                "level": "INFO",
+                "propagate": True,
+            },
             "__main__": {
                 "handlers": ["default"],
                 "level": "INFO",

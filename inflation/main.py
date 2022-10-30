@@ -2,8 +2,12 @@ from datetime import datetime
 import logging
 import os
 import tempfile
+from urllib.error import HTTPError
 
 from fastapi import BackgroundTasks, FastAPI
+import google
+import google.api_core.exceptions
+from pydantic import HttpUrl
 
 from common.clients.google_storage_client import get_storage_client
 from common.customized_logging import configure_logging
@@ -18,6 +22,9 @@ configure_logging()
 logger = logging.getLogger(__name__)
 
 app = FastAPI()
+v1 = FastAPI()
+
+
 cm = CrawlerManager(CRAWLERS)
 crawler_client = get_storage_client(inflation_app_settings.CRAWLER_BUCKET)
 parser_client = get_storage_client(inflation_app_settings.PARSER_BUCKET)
@@ -62,7 +69,13 @@ def fetch_inflation_data(excel_path, output_path, filename):
         f"Crawling started with {excel_path} and output_path is {output_path} and "
         f"filename is {filename}"
     )
-    records = cm.parse_excel_to_link_dataset(excel_path)
+
+    try:
+        records = cm.parse_excel_to_link_dataset(excel_path)
+    except HTTPError:
+        logger.warning(f"{excel_path} Not Found.")
+        return
+
     inflation_fn = cm.start_crawling(records, output_path, filename)
     basename = os.path.basename(inflation_fn)
 
@@ -81,9 +94,16 @@ def parse_inflation_data(source_filename, output_file_path, filename):
     logger.info(f"Parsing {source_filename} has been started.")
     _, suffix = os.path.splitext(source_filename)
     with tempfile.NamedTemporaryFile(suffix=suffix) as tmpfile:
-        crawler_client.download(source_filename, tmpfile.name)
+        try:
+            crawler_client.download(source_filename, tmpfile.name)
+        except google.api_core.exceptions.NotFound:
+            logger.warning(
+                f"{source_filename} is not found. Parsing can't be completed."
+            )
+            return
+
+        logger.info(f"{source_filename} downloaded successfully.")
         tmpfile.flush()
-        logger.info(f"Downloading {source_filename} done.")
 
         parsed_inflation_data_fn = pm.start_parsing(
             tmpfile.name, output_file_path, filename
@@ -95,8 +115,8 @@ def parse_inflation_data(source_filename, output_file_path, filename):
     basename = os.path.basename(parsed_inflation_data_fn)
     parser_client.upload(parsed_inflation_data_fn, basename)
     logger.info(
-        f"Uploading {parsed_inflation_data_fn} InflationDataset obj to "  # not always
-        # upload Inflation dataset. I should correct that.
+        f"Uploading {parsed_inflation_data_fn} InflationDataset obj to "
+        # not always upload Inflation dataset. I should correct that.
         f"{inflation_app_settings.PARSER_BUCKET}/{basename}"
     )
 
@@ -127,21 +147,22 @@ async def startup_event():
 
 @app.get("/", tags=["Index"])
 async def index():
-    return {"success": True, "message": "Inflation Downloader is working!"}
+    message = "Inflation Downloader is working! See the docs at /api/v1/docs"
+    return {"success": True, "message": message}
 
 
-@app.get("/Crawl", tags=["Crawl"])
+@v1.get("/Crawl", tags=["Crawl"])
 async def fetch_data_async(
     background_tasks: BackgroundTasks,
-    excel_path="https://docs.google.com/spreadsheets/d"
+    excel_path: HttpUrl = "https://docs.google.com/spreadsheets/d"
     "/1Xv5UOTpzDPELdtk8JW1oDWbjpsEexAKKLzgzZBB-2vw/edit#gid=0",
 ):
     filename = f"{datetime.now().strftime('%Y-%m-%d')}.crawl.jsonl.gz"
     background_tasks.add_task(
         fetch_inflation_data, excel_path, CRAWLER_OUTPUT_DIR, filename
     )
+
     return {
-        "success": True,
         "message": f"{inflation_app_settings.CRAWLER_BUCKET}/{filename} is preparing.",
         "data": {
             "bucket": inflation_app_settings.CRAWLER_BUCKET,
@@ -150,19 +171,16 @@ async def fetch_data_async(
     }
 
 
-@app.get("/Parse", tags=["Parse"])
-async def parse_data(source_filename):
+@v1.get("/Parse", tags=["Parse"])
+async def parse_data(background_tasks: BackgroundTasks, source_filename):
     logger.info(f"Received parse request for {source_filename}.")
     filename = f"{datetime.now().strftime('%Y-%m-%d')}.parse.tsv"
-    # background_tasks.add_task(
-    #     parse_inflation_data, source_filename, PARSER_OUTPUT_DIR, filename
-    # )
-
-    parse_inflation_data(source_filename, PARSER_OUTPUT_DIR, filename)
+    background_tasks.add_task(
+        parse_inflation_data, source_filename, PARSER_OUTPUT_DIR, filename
+    )
     return {
-        "success": True,
         "message": f"{inflation_app_settings.PARSER_BUCKET}/{source_filename} is "
-        f"preparing. Output will be stored on"
+        f"preparing. Output will be stored on "
         f"{filename}",
         "data": {
             "bucket": inflation_app_settings.PARSER_BUCKET,
@@ -171,7 +189,7 @@ async def parse_data(source_filename):
     }
 
 
-@app.get("/Stats", tags=["Stats"])
+@v1.get("/Stats", tags=["Stats"])
 async def get_db_stats():
     return collect_db_stats(CRAWLER_OUTPUT_DIR)
 
@@ -185,7 +203,8 @@ if __name__ == "__main__":
         host=inflation_app_settings.APP_HOST,
         port=inflation_app_settings.APP_PORT,
         reload=True,
-        # reload_dirs='/tmp/',
-        debug=True,
         workers=1,
     )
+
+
+app.mount("/api/v1", v1)
