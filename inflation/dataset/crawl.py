@@ -68,6 +68,18 @@ class MigrosCrawlerRobot(PageCrawlerRobot):
         return True
 
 
+class MacroCenterCrawlerRobot(PageCrawlerRobot):
+    def is_page_ready(self):
+        def _predicate(driver):
+            amount = driver.find_element(By.CLASS_NAME, "amount")
+            if len(amount.text) > 0 and amount.text.endswith("TL"):
+                return True
+            return False
+
+        self.wait.until(_predicate)
+        return True
+
+
 # TODO: add timeouterror
 
 
@@ -149,6 +161,14 @@ class Crawler:
 class MigrosCrawler(Crawler):
     def __init__(self):
         self.robot = MigrosCrawlerRobot()
+
+    def get_page(self, url):
+        return self.robot.get_page(url)
+
+
+class MacroCenterCrawler(Crawler):
+    def __init__(self):
+        self.robot = MacroCenterCrawlerRobot()
 
     def get_page(self, url):
         return self.robot.get_page(url)
@@ -284,6 +304,7 @@ def run():
         "a101": A101Crawler(),
         "migros": MigrosCrawler(),
         "carrefoursa": CarrefourCrawler(),
+        "macrocenter": MacroCenterCrawler(),
     }
     cm = CrawlerManager(crawlers)
     records = cm.parse_excel_to_link_dataset(file_path=args.excel_path)

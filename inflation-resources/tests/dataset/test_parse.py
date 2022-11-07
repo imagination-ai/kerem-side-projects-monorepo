@@ -16,6 +16,7 @@ from inflation.dataset.crawl import (
     CrawlerManager,
     A101Crawler,
     MigrosCrawler,
+    MacroCenterCrawler,
 )
 
 INFLATION_RESOURCES_PATH = Path(__file__).parents[2]
@@ -45,6 +46,15 @@ RECORDS_FOR_ONLINE_TRIALS = {
             "pinar",
             "https://www.migros.com.tr/pinar-organik-sut-1-l-p-a822f9",
             "migros",
+        )
+    ],
+    "macrocenter": [
+        ItemRecord(
+            "102",
+            "bulgur",
+            "duru",
+            "https://www.macrocenter.com.tr/duru-pilavlik-bulgur-1000-g-p-106755",
+            "macrocenter",
         )
     ],
 }
@@ -255,3 +265,18 @@ def test_online_migros_crawler(crawler_manager, parser_manager):
             assert record.product_brand == "Pınar"
             assert record.currency == "TRY"
             assert type(record.price) is float
+
+
+@pytest.mark.skip
+def test_online_macrocenter_crawler(crawler_manager, parser_manager):
+    with tempfile.TemporaryDirectory() as tmpdirname:
+        test_data_fp = crawler_manager.start_crawling(
+            RECORDS_FOR_ONLINE_TRIALS["macrocenter"], tmpdirname, "test"
+        )
+        files = []
+        for entry in os.listdir(tmpdirname):
+            if os.path.isfile(os.path.join(tmpdirname, entry)):
+                files.append(entry)
+        assert len(files) == 1
+        record_data = parser_manager.start_parsing(test_data_fp, tmpdirname)
+        assert record_data  # I'll delete this nonsense

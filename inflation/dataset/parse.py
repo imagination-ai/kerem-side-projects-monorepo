@@ -389,6 +389,10 @@ class MigrosParser(Parser):
         return True
 
 
+class MacroCenterParser(Parser):
+    pass
+
+
 def run():
     import argparse
 

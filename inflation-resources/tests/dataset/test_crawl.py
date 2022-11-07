@@ -12,11 +12,13 @@ from inflation.dataset.parse import A101Parser
 from inflation.dataset.crawl import A101Crawler
 from inflation.dataset.crawl import MigrosCrawler
 from inflation.dataset.crawl import CarrefourCrawler
+from inflation.dataset.crawl import MacroCenterCrawler
 
 CRAWLERS = {
     "a101": A101Crawler(),
     "migros": MigrosCrawler(),
     "carrefoursa": CarrefourCrawler(),
+    "macrocenter": MacroCenterCrawler(),
 }
 
 INFLATION_RESOURCES_PATH = Path(__file__).parents[2]
@@ -25,6 +27,7 @@ TEST_PAGES_PATH = {
     "a101": "tests/data/pages/ovadan-pirinc-baldo-1000-g-a101.html",
     "migros": "tests/data/pages/pinar-organik-sut-1L-migros.html",
     "carrefoursa": "tests/data/pages/carrefour-gonen-baldo-pirinc-carrefoursa.html",
+    "macrocenter": "tests/data/pages/duru-pilavlik-bulgur-1000-g-macro.html",
 }
 
 RECORDS = {
@@ -47,6 +50,15 @@ RECORDS = {
             "carrefour",
             "https://www.carrefoursa.com/carrefour-gonen-baldo-pirinc-1-kg-p-30165819",
             "carrefoursa",
+        )
+    ],
+    "macrocenter": [
+        ItemRecord(
+            "102",
+            "bulgur",
+            "duru",
+            "https://www.macrocenter.com.tr/duru-pilavlik-bulgur-1000-g-p-106755",
+            "macrocenter",
         )
     ],
 }
@@ -78,6 +90,13 @@ def html_test_file_for_carrefour():
 
     return codecs.open(
         INFLATION_RESOURCES_PATH / TEST_PAGES_PATH["carrefoursa"], "r"
+    ).read()
+
+
+@pytest.fixture(scope="module")
+def html_test_file_for_macrocenter():
+    return codecs.open(
+        INFLATION_RESOURCES_PATH / TEST_PAGES_PATH["macrocenter"], "r"
     ).read()
 
 
@@ -192,3 +211,34 @@ def test_start_crawling_check_output_for_carrefour(
         assert test_data["product_name"] == "carrefour"
         assert test_data["source"] == "carrefoursa"
         assert len(test_data["text"]) == 1315002
+
+
+@mock.patch("inflation.dataset.crawl.PageCrawlerRobot.get_page")
+def test_start_crawling_check_output_for_macrocenter(
+    mock_get_page,
+    crawler_manager,
+    html_test_file_for_macrocenter,
+):
+    """
+    (1) It tests the Crawler's start crawling method using Macrocenter case, creates output file (a json).
+    (2) It tests this file exist or not.
+    """
+
+    mock_get_page.return_value = html_test_file_for_macrocenter
+
+    with tempfile.TemporaryDirectory() as tmpdirname:
+        test_data_fp = crawler_manager.start_crawling(
+            RECORDS["macrocenter"], tmpdirname
+        )
+        files = []
+        for entry in os.listdir(tmpdirname):
+            if os.path.isfile(os.path.join(tmpdirname, entry)):
+                files.append(entry)
+        assert len(files) == 1
+        f = gzip.open(test_data_fp)
+        test_data = json.load(f)
+        assert test_data["item_code"] == "102"
+        assert test_data["item_name"] == "bulgur"
+        assert test_data["product_name"] == "duru"
+        assert test_data["source"] == "macrocenter"
+        assert len(test_data["text"]) == 127555

@@ -13,6 +13,7 @@ fastapi
 uvicorn
 pydantic
 python-multipart
+urlpath
 
 # inflation-in-turkey
 cdx_toolkit
