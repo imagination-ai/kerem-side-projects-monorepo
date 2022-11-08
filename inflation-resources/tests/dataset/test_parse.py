@@ -1,8 +1,11 @@
+import numpy as np
+import pandas as pd
 import pytest
 import datetime
 from pathlib import Path
 import tempfile
 import os
+
 
 from inflation.dataset.parse import (
     ParserManager,
@@ -10,6 +13,7 @@ from inflation.dataset.parse import (
     InflationDataset,
     A101Parser,
     MigrosParser,
+    MacroCenterParser,
 )
 from inflation.dataset.crawl import (
     ItemRecord,
@@ -26,8 +30,16 @@ TEST_FILE_PATHS = {
     "migros": "tests/data/test_data_migros.small.jsonl.gz",
 }
 
-CRAWLERS = {"a101": A101Crawler(), "migros": MigrosCrawler()}
-PARSERS = {"a101": A101Parser(), "migros": MigrosParser()}
+CRAWLERS = {
+    "a101": A101Crawler(),
+    "migros": MigrosCrawler(),
+    "macrocenter": MacroCenterCrawler(),
+}
+PARSERS = {
+    "a101": A101Parser(),
+    "migros": MigrosParser(),
+    "macrocenter": MacroCenterParser(),
+}
 
 RECORDS_FOR_ONLINE_TRIALS = {
     "a101": [
@@ -248,35 +260,43 @@ def test_online_a101_crawler(crawler_manager, parser_manager):
 def test_online_migros_crawler(crawler_manager, parser_manager):
     with tempfile.TemporaryDirectory() as tmpdirname:
         test_data_fp = crawler_manager.start_crawling(
-            RECORDS_FOR_ONLINE_TRIALS["migros"], tmpdirname, "test"
+            RECORDS_FOR_ONLINE_TRIALS["migros"],
+            tmpdirname,
+            "migros-test.jsonl.gz",
         )
         files = []
         for entry in os.listdir(tmpdirname):
             if os.path.isfile(os.path.join(tmpdirname, entry)):
                 files.append(entry)
         assert len(files) == 1
-        record_data = parser_manager.start_parsing(test_data_fp)
-        for record in record_data:
-            assert record.item_code == "505"
-            assert record.item_name == "sut"
-            assert record.source == "migros"
-            assert record.product_name == "Pınar Organik Süt 1 L"
-            assert record.product_code == "11019001"
-            assert record.product_brand == "Pınar"
-            assert record.currency == "TRY"
-            assert type(record.price) is float
+        record_data_path = parser_manager.start_parsing(
+            test_data_fp, tmpdirname, "migros-test.tsv"
+        )
+        record = pd.read_csv(record_data_path, sep="\t")
+        # assert record.item_code[0] == "505"
+        assert record.item_name[0] == "sut"
+        assert record.source[0] == "migros"
+        assert record.product_name[0] == "Pınar Organik Süt 1 L"
+        # assert record.product_code == "11019001"
+        assert record.product_brand[0] == "Pınar"
+        assert record.currency[0] == "TRY"
+        assert type(record.price[0]) is np.float64
 
 
 @pytest.mark.skip
 def test_online_macrocenter_crawler(crawler_manager, parser_manager):
     with tempfile.TemporaryDirectory() as tmpdirname:
         test_data_fp = crawler_manager.start_crawling(
-            RECORDS_FOR_ONLINE_TRIALS["macrocenter"], tmpdirname, "test"
+            RECORDS_FOR_ONLINE_TRIALS["macrocenter"],
+            tmpdirname,
+            "macro-test.jsonl.gz",
         )
         files = []
         for entry in os.listdir(tmpdirname):
             if os.path.isfile(os.path.join(tmpdirname, entry)):
                 files.append(entry)
         assert len(files) == 1
-        record_data = parser_manager.start_parsing(test_data_fp, tmpdirname)
-        assert record_data  # I'll delete this nonsense
+        record = parser_manager.start_parsing(
+            test_data_fp, tmpdirname, "macro-test.tsv"
+        )
+        assert record.item_name[0] == "sut"

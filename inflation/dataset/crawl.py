@@ -252,7 +252,7 @@ class CrawlerManager:
     def start_crawling(
         self,
         records: List[ItemRecord],
-        path="/",
+        path="./",
         output_fn="inflation-crawl.jsonl.gz",
     ):
 
