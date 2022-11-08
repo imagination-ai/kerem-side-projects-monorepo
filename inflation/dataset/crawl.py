@@ -125,6 +125,11 @@ class Crawler:
 
         if r.status_code == 200:
             return r.text
+        else:
+            logger.warning(
+                f"{url} returned {r.status_code} with {r.reason} and "
+                f"content is\n{r.content}"
+            )
 
     def crawl(self, record: ItemRecord):
         """
