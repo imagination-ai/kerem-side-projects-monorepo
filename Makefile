@@ -13,7 +13,7 @@ install: .venv requirements.txt
 	$(RUN) pip install -r requirements.txt
 
 install-dev: install-test
-	wget https://chromedriver.storage.googleapis.com/105.0.5195.52/chromedriver_mac64.zip
+	wget https://chromedriver.storage.googleapis.com/107.0.5304.62/chromedriver_mac64.zip
 	unzip chromedriver_mac64.zip
 	mv chromedriver /usr/local/bin/chromedriver
 	rm chromedriver_mac64.zip
