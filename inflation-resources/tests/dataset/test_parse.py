@@ -296,7 +296,15 @@ def test_online_macrocenter_crawler(crawler_manager, parser_manager):
             if os.path.isfile(os.path.join(tmpdirname, entry)):
                 files.append(entry)
         assert len(files) == 1
-        record = parser_manager.start_parsing(
+        record_data_path = parser_manager.start_parsing(
             test_data_fp, tmpdirname, "macro-test.tsv"
         )
+        record = pd.read_csv(record_data_path, sep="\t")
+        # assert record.item_code[0] == "505"
         assert record.item_name[0] == "sut"
+        assert record.source[0] == "migros"
+        assert record.product_name[0] == "Pınar Organik Süt 1 L"
+        # assert record.product_code == "11019001"
+        assert record.product_brand[0] == "Pınar"
+        assert record.currency[0] == "TRY"
+        assert type(record.price[0]) is np.float64
