@@ -283,6 +283,7 @@ def test_online_migros_crawler(crawler_manager, parser_manager):
         assert type(record.price[0]) is np.float64
 
 
+@pytest.mark.skip
 def test_online_macrocenter_crawler(crawler_manager, parser_manager):
     with tempfile.TemporaryDirectory() as tmpdirname:
         test_data_fp = crawler_manager.start_crawling(
