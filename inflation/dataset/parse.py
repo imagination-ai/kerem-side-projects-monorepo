@@ -446,7 +446,7 @@ class MacroCenterParser(Parser):
         return all(
             [
                 soup.find("meta", property="og:url"),
-                soup.find("meta", property="product:price:amount"),
+                soup.find("meta", property="og:price:amount"),
             ]
         )
 

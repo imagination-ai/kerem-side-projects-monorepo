@@ -283,7 +283,6 @@ def test_online_migros_crawler(crawler_manager, parser_manager):
         assert type(record.price[0]) is np.float64
 
 
-@pytest.mark.skip
 def test_online_macrocenter_crawler(crawler_manager, parser_manager):
     with tempfile.TemporaryDirectory() as tmpdirname:
         test_data_fp = crawler_manager.start_crawling(
@@ -301,10 +300,10 @@ def test_online_macrocenter_crawler(crawler_manager, parser_manager):
         )
         record = pd.read_csv(record_data_path, sep="\t")
         # assert record.item_code[0] == "505"
-        assert record.item_name[0] == "sut"
-        assert record.source[0] == "migros"
-        assert record.product_name[0] == "Pınar Organik Süt 1 L"
+        assert record.item_name[0] == "bulgur"
+        assert record.source[0] == "macrocenter"
+        assert record.product_name[0] == "Duru Pilavlik Bulgur 1000 G"
         # assert record.product_code == "11019001"
-        assert record.product_brand[0] == "Pınar"
+        assert record.product_brand[0] == "Duru Bulgur"
         assert record.currency[0] == "TRY"
         assert type(record.price[0]) is np.float64
