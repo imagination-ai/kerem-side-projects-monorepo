@@ -416,6 +416,7 @@ class MacroCenterParser(Parser):
         return float(
             soup.find("meta", property="og:price:amount")
             .attrs["content"]
+            .replace(".", "")
             .replace(",", ".")
         )
 
@@ -441,7 +442,7 @@ class MacroCenterParser(Parser):
         return datetime.datetime.strptime(date, "%Y%m%d%H%M%S")
 
     @staticmethod  # TODO: boilerplete, clean the code
-    # TODO: I didn't like the code first place. I retrieve those info (url and price) twice.
+    # TODO: I was not too fond of the code. It retrieves that info (URL and price) twice.
     def _is_product_page(soup):
         return all(
             [
