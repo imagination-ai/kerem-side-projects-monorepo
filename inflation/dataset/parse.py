@@ -389,6 +389,73 @@ class MigrosParser(Parser):
         return True
 
 
+class MacroCenterParser(Parser):
+    @staticmethod
+    def _get_product_name(soup):
+        return (
+            soup.find("meta", property="og:title")
+            .attrs["content"]
+            .split("|")[0]
+            .strip()
+        )
+
+    @staticmethod
+    def _get_product_url(soup):
+        return soup.find("meta", property="og:url")["content"]
+
+    @staticmethod
+    def _get_product_code(soup):
+        pass
+
+    @staticmethod
+    def _get_product_brand(soup):
+        return soup.find("fe-product-brand").next_element.attrs["aria-label"]
+
+    @staticmethod
+    def _get_product_price(soup):
+        return float(
+            soup.find("meta", property="og:price:amount")
+            .attrs["content"]
+            .replace(".", "")
+            .replace(",", ".")
+        )
+
+    @staticmethod
+    def _get_currency(soup):
+        if (
+            soup.find("div", {"class": "price-new subtitle-1 price-new-only"})
+            .find(class_="currency")
+            .text
+            == "TL"
+        ):
+            return "TRY"
+
+    @staticmethod
+    def _item_in_stock(soup):
+        return (
+            soup.find("fe-product-actions").find("button").attrs["aria-label"]
+            == "Ürünü sepete ekle"
+        )
+
+    @staticmethod  # TODO: boilerplete, clean the code
+    def _convert_sample_date(date: str):
+        return datetime.datetime.strptime(date, "%Y%m%d%H%M%S")
+
+    @staticmethod  # TODO: boilerplete, clean the code
+    # TODO: I was not too fond of the code. It retrieves that info (URL and price) twice.
+    def _is_product_page(soup):
+        return all(
+            [
+                soup.find("meta", property="og:url"),
+                soup.find("meta", property="og:price:amount"),
+            ]
+        )
+
+    @staticmethod
+    def _get_soup(soup):
+        return soup
+
+
 def run():
     import argparse
 

@@ -1,8 +1,11 @@
+import numpy as np
+import pandas as pd
 import pytest
 import datetime
 from pathlib import Path
 import tempfile
 import os
+
 
 from inflation.dataset.parse import (
     ParserManager,
@@ -10,28 +13,38 @@ from inflation.dataset.parse import (
     InflationDataset,
     A101Parser,
     MigrosParser,
+    MacroCenterParser,
 )
 from inflation.dataset.crawl import (
     ItemRecord,
     CrawlerManager,
     A101Crawler,
     MigrosCrawler,
+    MacroCenterCrawler,
 )
 
 INFLATION_RESOURCES_PATH = Path(__file__).parents[2]
-
+DTYPE_DIC = {"item_code": str}
 TEST_FILE_PATHS = {
     "a101": "tests/data/test_data_a101_small.jsonl.gz",
     "migros": "tests/data/test_data_migros.small.jsonl.gz",
 }
 
-CRAWLERS = {"a101": A101Crawler(), "migros": MigrosCrawler()}
-PARSERS = {"a101": A101Parser(), "migros": MigrosParser()}
+CRAWLERS = {
+    "a101": A101Crawler(),
+    "migros": MigrosCrawler(),
+    "macrocenter": MacroCenterCrawler(),
+}
+PARSERS = {
+    "a101": A101Parser(),
+    "migros": MigrosParser(),
+    "macrocenter": MacroCenterParser(),
+}
 
 RECORDS_FOR_ONLINE_TRIALS = {
     "a101": [
         ItemRecord(
-            "123",
+            "0111101",
             "pirinc",
             "ovadan",
             "https://www.a101.com.tr/market/ovadan-pirinc-baldo-1000-g-1",
@@ -40,11 +53,20 @@ RECORDS_FOR_ONLINE_TRIALS = {
     ],
     "migros": [
         ItemRecord(
-            "505",
+            "0114101",
             "sut",
             "pinar",
             "https://www.migros.com.tr/pinar-organik-sut-1-l-p-a822f9",
             "migros",
+        )
+    ],
+    "macrocenter": [
+        ItemRecord(
+            "0111209",
+            "bulgur",
+            "duru",
+            "https://www.macrocenter.com.tr/duru-pilavlik-bulgur-1000-g-p-106755",
+            "macrocenter",
         )
     ],
 }
@@ -204,7 +226,7 @@ def test_migros_parse_products(
             assert data_record == truth
 
 
-@pytest.mark.skip  # (TODO: this test should be update since start_parsing updated)
+# @pytest.mark.skip
 def test_online_a101_crawler(crawler_manager, parser_manager):
     """
     It tests our crawler and reader still works on the A101 website.
@@ -215,43 +237,80 @@ def test_online_a101_crawler(crawler_manager, parser_manager):
     """
     with tempfile.TemporaryDirectory() as tmpdirname:
         test_data_fp = crawler_manager.start_crawling(
-            RECORDS_FOR_ONLINE_TRIALS["a101"], tmpdirname, "test"
+            RECORDS_FOR_ONLINE_TRIALS["a101"],
+            tmpdirname,
+            "a101-test.jsonl.gz",
         )
         files = []
         for entry in os.listdir(tmpdirname):
             if os.path.isfile(os.path.join(tmpdirname, entry)):
                 files.append(entry)
         assert len(files) == 1
-        record_data = parser_manager.start_parsing(test_data_fp)
-        for record in record_data:
-            assert record.item_code == "123"
-            assert record.item_name == "pirinc"
-            assert record.source == "a101"
-            assert record.product_name == "Ovadan Pirinç Baldo 1000 G"
-            assert record.product_code == "14001902"
-            assert record.product_brand == "Ovadan"
-            assert record.currency == "TRY"
-            assert type(record.price) is float
+        record_data_path = parser_manager.start_parsing(
+            test_data_fp, tmpdirname, "a101-test.tsv"
+        )
+        record = pd.read_csv(record_data_path, sep="\t", dtype=DTYPE_DIC)
+        assert record.item_code[0] == "0111101"
+        assert record.item_name[0] == "pirinc"
+        assert record.source[0] == "a101"
+        assert record.product_name[0] == "Ovadan Pirinç Baldo 1000 G"
+        assert record.product_code[0] == 14001902
+        assert record.product_brand[0] == "Ovadan"
+        assert record.currency[0] == "TRY"
+        assert type(record.price[0]) is np.float64
 
 
-@pytest.mark.skip
+# @pytest.mark.skip
 def test_online_migros_crawler(crawler_manager, parser_manager):
     with tempfile.TemporaryDirectory() as tmpdirname:
         test_data_fp = crawler_manager.start_crawling(
-            RECORDS_FOR_ONLINE_TRIALS["migros"], tmpdirname, "test"
+            RECORDS_FOR_ONLINE_TRIALS["migros"],
+            tmpdirname,
+            "migros-test.jsonl.gz",
         )
         files = []
         for entry in os.listdir(tmpdirname):
             if os.path.isfile(os.path.join(tmpdirname, entry)):
                 files.append(entry)
         assert len(files) == 1
-        record_data = parser_manager.start_parsing(test_data_fp)
-        for record in record_data:
-            assert record.item_code == "505"
-            assert record.item_name == "sut"
-            assert record.source == "migros"
-            assert record.product_name == "Pınar Organik Süt 1 L"
-            assert record.product_code == "11019001"
-            assert record.product_brand == "Pınar"
-            assert record.currency == "TRY"
-            assert type(record.price) is float
+        record_data_path = parser_manager.start_parsing(
+            test_data_fp, tmpdirname, "migros-test.tsv"
+        )
+        record = pd.read_csv(record_data_path, sep="\t", dtype=DTYPE_DIC)
+        assert record.item_code[0] == "0114101"
+        assert record.item_name[0] == "sut"
+        assert record.source[0] == "migros"
+        assert record.product_name[0] == "Pınar Organik Süt 1 L"
+        assert record.product_code[0] == 11019001
+        assert record.product_brand[0] == "Pınar"
+        assert record.currency[0] == "TRY"
+        assert type(record.price[0]) is np.float64
+
+
+# @pytest.mark.skip
+def test_online_macrocenter_crawler(crawler_manager, parser_manager):
+    with tempfile.TemporaryDirectory() as tmpdirname:
+        test_data_fp = crawler_manager.start_crawling(
+            RECORDS_FOR_ONLINE_TRIALS["macrocenter"],
+            tmpdirname,
+            "macro-test.jsonl.gz",
+        )
+        files = []
+        for entry in os.listdir(tmpdirname):
+            if os.path.isfile(os.path.join(tmpdirname, entry)):
+                files.append(entry)
+        assert len(files) == 1
+        record_data_path = parser_manager.start_parsing(
+            test_data_fp,
+            tmpdirname,
+            "macro-test.tsv",
+        )
+        record = pd.read_csv(record_data_path, sep="\t", dtype=DTYPE_DIC)
+        assert record.item_code[0] == "0111209"
+        assert record.item_name[0] == "bulgur"
+        assert record.source[0] == "macrocenter"
+        assert record.product_name[0] == "Duru Pilavlik Bulgur 1000 G"
+        assert np.isnan(record.product_code[0])
+        assert record.product_brand[0] == "Duru Bulgur"
+        assert record.currency[0] == "TRY"
+        assert type(record.price[0]) is np.float64
